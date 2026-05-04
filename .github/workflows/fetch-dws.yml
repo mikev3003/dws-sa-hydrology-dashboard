@@ -2,14 +2,18 @@ name: Fetch DWS Hydrology Data
 
 on:
   schedule:
-    - cron: '15 * * * *'
+    # Runs twice daily at 06:15 and 18:15 UTC (08:15 and 20:15 SAST)
+    - cron: '15 6,18 * * *'
   workflow_dispatch:
+    # Allows manual trigger from GitHub Actions tab
 
 jobs:
   fetch-and-commit:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repository
@@ -20,10 +24,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 lxml
+          pip install playwright beautifulsoup4 lxml
+
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+          playwright install-deps chromium
 
       - name: Run DWS scraper
         run: |
