@@ -5,14 +5,11 @@ Uses Playwright (headless Chromium) to load the DWS Unverified Hydrology
 page, click each WMA radio button, wait for the table to update, then
 scrape the station data.
 
-This is the only reliable way to get all 6 WMAs since the DWS site
-renders each WMA's data via JavaScript after a radio button click.
-
-Runs via GitHub Actions twice daily (06:15 and 18:15 UTC).
+Runs via GitHub Actions twice daily (06:15 and 18:15 UTC / 08:15 and 20:15 SAST).
 
 We are guests on DWS's server. We:
   - Identify ourselves honestly via User-Agent
-  - Wait politely between each WMA tab click (5 seconds)
+  - Wait politely between each WMA tab click
   - Run only twice a day
   - Contact: waterresearchobservatory.org
 """
@@ -20,13 +17,10 @@ We are guests on DWS's server. We:
 import json
 import re
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-
-DELAY_BETWEEN_WMAS = 5   # seconds between clicking each WMA tab
-PAGE_LOAD_TIMEOUT  = 30000  # ms to wait for page load
-TABLE_TIMEOUT      = 10000  # ms to wait for table to update after click
 
 print("Python version:", sys.version)
 print("Starting DWS scraper (Playwright headless browser mode)...")
@@ -38,20 +32,30 @@ except ImportError as e:
     print("ERROR: playwright not installed:", e)
     sys.exit(1)
 
+try:
+    from bs4 import BeautifulSoup
+    print("beautifulsoup4 imported OK")
+except ImportError as e:
+    print("ERROR: beautifulsoup4 not installed:", e)
+    sys.exit(1)
+
 # ── Config ────────────────────────────────────────────────────────────────
 
 BASE_URL = "https://www.dws.gov.za/Hydrology/Unverified/"
 
 WMA_CONFIG = {
-    "WMA1": {"name": "Limpopo-Olifants",    "prefixes": ["A", "B"],              "label": "Limpopo-Olifants"},
-    "WMA2": {"name": "Inkomati-Usuthu",     "prefixes": ["X", "W"],              "label": "Inkomati-Usuthu"},
-    "WMA3": {"name": "Pongola-Mtamvuna",    "prefixes": ["V", "T"],              "label": "Pongola-Mtamvuna"},
-    "WMA4": {"name": "Vaal-Orange",          "prefixes": ["C", "D"],              "label": "Vaal-Orange"},
-    "WMA5": {"name": "Mzimvubu-Tsitsikama", "prefixes": ["E", "F", "G", "H", "J", "K"], "label": "Mzimvubu-Tsitsikama"},
-    "WMA6": {"name": "Breede-Olifants",     "prefixes": ["L", "M", "N", "P", "Q", "R", "S"], "label": "Breede-Olifants"},
+    "WMA1": {"name": "Limpopo-Olifants",    "prefixes": ["A", "B"]},
+    "WMA2": {"name": "Inkomati-Usuthu",     "prefixes": ["X", "W"]},
+    "WMA3": {"name": "Pongola-Mtamvuna",    "prefixes": ["V", "T"]},
+    "WMA4": {"name": "Vaal-Orange",          "prefixes": ["C", "D"]},
+    "WMA5": {"name": "Mzimvubu-Tsitsikama", "prefixes": ["E", "F", "G", "H", "J", "K"]},
+    "WMA6": {"name": "Breede-Olifants",     "prefixes": ["L", "M", "N", "P", "Q", "R", "S"]},
 }
 
-OUTPUT_DIR = Path("data")
+DELAY_BETWEEN_WMAS  = 5      # polite pause between WMA clicks (seconds)
+WAIT_AFTER_CLICK    = 8000   # ms to wait after clicking a radio button
+PAGE_LOAD_WAIT      = 5000   # ms extra wait after page load for JS to settle
+OUTPUT_DIR          = Path("data")
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -64,19 +68,10 @@ def clean_float(text):
 def is_dam(station_code):
     return bool(re.search(r"R\d", station_code, re.IGNORECASE))
 
-def wma_for_station(code):
-    code = code.upper()
-    for wma_key, config in WMA_CONFIG.items():
-        if any(code.startswith(p.upper()) for p in config["prefixes"]):
-            return wma_key
-    return None
-
-def parse_table_html(html, expected_prefixes):
-    """Parse station rows from HTML, filtering by expected WMA prefixes."""
-    from bs4 import BeautifulSoup
+def parse_table(html, prefixes):
+    """Parse station rows from page HTML, filtered by WMA prefix."""
     soup = BeautifulSoup(html, "html.parser")
     rows = []
-
     for tr in soup.find_all("tr"):
         tds = tr.find_all("td")
         if len(tds) < 5:
@@ -84,106 +79,174 @@ def parse_table_html(html, expected_prefixes):
         link = tds[0].find("a")
         if not link:
             continue
-
         station = link.get_text(strip=True)
         if not station or not re.match(r"^[A-Z]\d", station, re.IGNORECASE):
             continue
-        if not any(station.upper().startswith(p.upper()) for p in expected_prefixes):
+        if not any(station.upper().startswith(p.upper()) for p in prefixes):
             continue
-
-        place    = tds[1].get_text(strip=True) if len(tds) > 1 else ""
-        dt_str   = tds[2].get_text(strip=True) if len(tds) > 2 else ""
-        stage    = clean_float(tds[3].get_text()) if len(tds) > 3 else 0.0
-        flow     = clean_float(tds[4].get_text()) if len(tds) > 4 else 0.0
-        spill    = clean_float(tds[5].get_text()) if len(tds) > 5 else 0.0
-        comment  = tds[6].get_text(strip=True)    if len(tds) > 6 else ""
-
         rows.append({
             "station":  station,
-            "place":    place,
-            "datetime": dt_str,
-            "stage":    stage,
-            "flow":     flow,
-            "spill":    spill,
-            "comment":  comment,
+            "place":    tds[1].get_text(strip=True) if len(tds) > 1 else "",
+            "datetime": tds[2].get_text(strip=True) if len(tds) > 2 else "",
+            "stage":    clean_float(tds[3].get_text()) if len(tds) > 3 else 0.0,
+            "flow":     clean_float(tds[4].get_text()) if len(tds) > 4 else 0.0,
+            "spill":    clean_float(tds[5].get_text()) if len(tds) > 5 else 0.0,
+            "comment":  tds[6].get_text(strip=True)    if len(tds) > 6 else "",
             "isDam":    is_dam(station),
         })
-
     return rows
+
+def debug_page(page, label=""):
+    """Print useful debug info about the current page state."""
+    print(f"\n  --- DEBUG {label} ---")
+    # Count all inputs
+    inputs = page.query_selector_all("input")
+    print(f"  Total <input> elements: {len(inputs)}")
+    for i, inp in enumerate(inputs[:10]):
+        try:
+            itype = inp.get_attribute("type") or "unknown"
+            iname = inp.get_attribute("name") or ""
+            iid   = inp.get_attribute("id") or ""
+            ival  = inp.get_attribute("value") or ""
+            print(f"    [{i}] type={itype} name={iname} id={iid} value={ival}")
+        except:
+            pass
+    # Count table rows
+    rows = page.query_selector_all("table tr")
+    print(f"  Total <tr> elements: {len(rows)}")
+    # Look for any links that look like station codes
+    links = page.query_selector_all("table td a")
+    print(f"  Total <td><a> links (potential stations): {len(links)}")
+    if links:
+        for lnk in links[:5]:
+            try:
+                print(f"    Sample link: {lnk.inner_text()}")
+            except:
+                pass
+    print(f"  --- END DEBUG ---\n")
 
 # ── Main scraper ──────────────────────────────────────────────────────────
 
 def scrape_all_wmas():
-    """Use Playwright to load each WMA tab and scrape the station table."""
     results = {}
 
     with sync_playwright() as p:
         print("\nLaunching headless Chromium...")
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox"]
+        )
         context = browser.new_context(
             user_agent=(
-                "DWS-Hydrology-Monitor/1.0 "
-                "(Water Research Observatory; +https://waterresearchobservatory.org; "
-                "runs twice daily; respectful scraper)"
-            )
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36 "
+                "DWS-Monitor/1.0 (+https://waterresearchobservatory.org)"
+            ),
+            viewport={"width": 1280, "height": 900},
         )
         page = context.new_page()
 
         # ── Load the page ─────────────────────────────────────────────────
-        print(f"Loading {BASE_URL}...")
+        print(f"\nNavigating to {BASE_URL}...")
         try:
-            page.goto(BASE_URL, wait_until="networkidle", timeout=PAGE_LOAD_TIMEOUT)
-            print(f"  Page loaded: {page.title()}")
+            page.goto(BASE_URL, wait_until="networkidle", timeout=60000)
         except PlaywrightTimeout:
-            print("  Timeout loading page — trying with domcontentloaded...")
-            page.goto(BASE_URL, wait_until="domcontentloaded", timeout=PAGE_LOAD_TIMEOUT)
+            print("  networkidle timeout — continuing with domcontentloaded...")
+            page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
 
-        # ── Find the WMA radio buttons ────────────────────────────────────
-        print("\nLooking for WMA radio buttons...")
+        print(f"  Page title: {page.title()}")
+
+        # Extra wait for JS to settle and ASP.NET UpdatePanels to init
+        print(f"  Waiting {PAGE_LOAD_WAIT}ms for JavaScript to settle...")
+        page.wait_for_timeout(PAGE_LOAD_WAIT)
+
+        # Debug: inspect the page
+        debug_page(page, "AFTER INITIAL LOAD")
+
+        # ── Try to find radio buttons several ways ────────────────────────
         radio_buttons = page.query_selector_all("input[type='radio']")
-        print(f"  Found {len(radio_buttons)} radio buttons")
+        print(f"\nRadio buttons found: {len(radio_buttons)}")
 
+        # If still no radio buttons, try waiting for them explicitly
         if len(radio_buttons) == 0:
-            print("  ERROR: No radio buttons found — page may not have loaded correctly")
-            print(f"  Page HTML snippet: {page.content()[:500]}")
-            browser.close()
-            return {}
-
-        # ── Click each WMA radio button and scrape ────────────────────────
-        wma_keys = list(WMA_CONFIG.keys())
-
-        for idx, wma_key in enumerate(wma_keys):
-            config = WMA_CONFIG[wma_key]
-            print(f"\nScraping {wma_key} ({config['name']})...")
-
-            if idx >= len(radio_buttons):
-                print(f"  WARNING: No radio button at index {idx}, skipping")
-                results[wma_key] = []
-                continue
-
+            print("  No radio buttons yet — waiting up to 15s for them...")
             try:
-                # Click the radio button for this WMA
-                radio_buttons[idx].click()
-                print(f"  Clicked radio button {idx}")
+                page.wait_for_selector("input[type='radio']", timeout=15000)
+                radio_buttons = page.query_selector_all("input[type='radio']")
+                print(f"  Found {len(radio_buttons)} radio buttons after wait")
+            except PlaywrightTimeout:
+                print("  Still no radio buttons after waiting.")
 
-                # Wait for the table to update
-                page.wait_for_timeout(TABLE_TIMEOUT)
+        # ── If we have radio buttons, click each WMA ───────────────────────
+        if len(radio_buttons) > 0:
+            wma_keys = list(WMA_CONFIG.keys())
+            for idx, wma_key in enumerate(wma_keys):
+                config = WMA_CONFIG[wma_key]
+                print(f"\nScraping {wma_key} ({config['name']})...")
 
-                # Get the updated page HTML
-                html = page.content()
-                stations = parse_table_html(html, config["prefixes"])
-                print(f"  → {len(stations)} stations found for {wma_key}")
-                results[wma_key] = stations
+                if idx >= len(radio_buttons):
+                    print(f"  WARNING: No radio button at index {idx}")
+                    results[wma_key] = []
+                    continue
 
-            except Exception as e:
-                print(f"  ERROR scraping {wma_key}: {e}")
-                results[wma_key] = []
+                try:
+                    radio_buttons[idx].click()
+                    print(f"  Clicked radio button {idx}")
+                    page.wait_for_timeout(WAIT_AFTER_CLICK)
 
-            # Polite pause between WMA clicks
-            if idx < len(wma_keys) - 1:
-                print(f"  ⏳ Waiting {DELAY_BETWEEN_WMAS}s before next WMA...")
-                import time
-                time.sleep(DELAY_BETWEEN_WMAS)
+                    html = page.content()
+                    stations = parse_table(html, config["prefixes"])
+                    print(f"  → {len(stations)} stations for {wma_key}")
+                    results[wma_key] = stations
+
+                except Exception as e:
+                    print(f"  ERROR on {wma_key}: {e}")
+                    results[wma_key] = []
+
+                if idx < len(wma_keys) - 1:
+                    print(f"  ⏳ Waiting {DELAY_BETWEEN_WMAS}s...")
+                    time.sleep(DELAY_BETWEEN_WMAS)
+
+        else:
+            # ── Fallback: no radio buttons — scrape whatever is on the page ─
+            print("\nNo radio buttons found — scraping default page content...")
+            html = page.content()
+
+            # Try all WMA prefixes against whatever stations are on the page
+            all_stations = []
+            soup = BeautifulSoup(html, "html.parser")
+            for tr in soup.find_all("tr"):
+                tds = tr.find_all("td")
+                if len(tds) < 5:
+                    continue
+                link = tds[0].find("a")
+                if not link:
+                    continue
+                station = link.get_text(strip=True)
+                if not station or not re.match(r"^[A-Z]\d", station, re.IGNORECASE):
+                    continue
+                all_stations.append({
+                    "station":  station,
+                    "place":    tds[1].get_text(strip=True) if len(tds) > 1 else "",
+                    "datetime": tds[2].get_text(strip=True) if len(tds) > 2 else "",
+                    "stage":    clean_float(tds[3].get_text()) if len(tds) > 3 else 0.0,
+                    "flow":     clean_float(tds[4].get_text()) if len(tds) > 4 else 0.0,
+                    "spill":    clean_float(tds[5].get_text()) if len(tds) > 5 else 0.0,
+                    "comment":  tds[6].get_text(strip=True)    if len(tds) > 6 else "",
+                    "isDam":    is_dam(station),
+                })
+
+            print(f"  Fallback: found {len(all_stations)} total stations on default page")
+
+            # Split by prefix
+            for wma_key, config in WMA_CONFIG.items():
+                wma_stations = [
+                    s for s in all_stations
+                    if any(s["station"].upper().startswith(p.upper()) for p in config["prefixes"])
+                ]
+                results[wma_key] = wma_stations
+                print(f"  {wma_key}: {len(wma_stations)} stations")
 
         browser.close()
         print("\nBrowser closed.")
@@ -196,17 +259,10 @@ def main():
     OUTPUT_DIR.mkdir(exist_ok=True)
     fetched_at = datetime.now(timezone.utc).isoformat()
 
-    print(f"Fetch time (UTC): {fetched_at}")
+    print(f"\nFetch time (UTC): {fetched_at}")
     print(f"Output directory: {OUTPUT_DIR.absolute()}")
 
     results = scrape_all_wmas()
-
-    if not results:
-        print("FATAL: No data returned from scraper.")
-        sys.exit(1)
-
-    # ── Save one JSON file per WMA ────────────────────────────────────────
-    print("\nSaving JSON files...")
     summary = {}
 
     for wma_key, config in WMA_CONFIG.items():
@@ -222,28 +278,22 @@ def main():
         out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
         summary[wma_key] = len(stations)
         status = "✓" if len(stations) > 0 else "⚠ EMPTY"
-        print(f"  {wma_key}: {len(stations)} stations {status} → {out_path}")
+        print(f"  {wma_key}: {len(stations)} stations {status}")
 
-    # ── Summary index ─────────────────────────────────────────────────────
-    index_path = OUTPUT_DIR / "index.json"
-    index_path.write_text(json.dumps({
+    # Summary
+    (OUTPUT_DIR / "index.json").write_text(json.dumps({
         "fetched_at": fetched_at,
-        "schedule":   "Twice daily — 06:15 and 18:15 UTC (08:15 and 20:15 SAST)",
+        "schedule":   "Twice daily — 06:15 and 18:15 UTC",
         "source":     BASE_URL,
         "method":     "Playwright headless Chromium",
         "wmas":       summary,
     }, indent=2))
 
-    print("\n" + "="*50)
-    print("COMPLETE. Results:")
     total = sum(summary.values())
-    for k, v in summary.items():
-        print(f"  {k}: {v} stations")
-    print(f"  Total: {total} stations")
-    print("="*50)
+    print(f"\nTotal stations across all WMAs: {total}")
 
     if total == 0:
-        print("FATAL: 0 stations across all WMAs.")
+        print("FATAL: 0 stations — DWS page may have changed or be down.")
         sys.exit(1)
 
 if __name__ == "__main__":
