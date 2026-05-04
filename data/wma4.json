@@ -1,7 +1,7 @@
 {
   "wma": "WMA4",
   "name": "Vaal-Orange",
-  "fetched_at": "2026-05-04T07:02:31.037347+00:00",
+  "fetched_at": "2026-05-04T07:17:47.853098+00:00",
   "count": 101,
   "stations": [
     {
@@ -817,10 +817,10 @@
     {
       "station": "D2R001",
       "place": "Witspruit at Egmont Dam",
-      "datetime": "2026-05-04 05:00",
-      "stage": 10.829,
-      "flow": 104.16,
-      "spill": 4.65,
+      "datetime": "2026-05-04 07:00",
+      "stage": 10.825,
+      "flow": 104.05,
+      "spill": 4.46,
       "comment": "",
       "isDam": true
     },
@@ -847,10 +847,10 @@
     {
       "station": "D2R006",
       "place": "Rietspr. at Knellpoort Dam",
-      "datetime": "2026-05-04 07:00",
-      "stage": 24.739,
-      "flow": 101.83,
-      "spill": 12.42,
+      "datetime": "2026-05-04 08:00",
+      "stage": 24.742,
+      "flow": 101.86,
+      "spill": 12.66,
       "comment": "",
       "isDam": true
     },
@@ -867,9 +867,9 @@
     {
       "station": "D3H013",
       "place": "Outlow from Gariep Dam",
-      "datetime": "2026-05-04 05:00",
-      "stage": 2.467,
-      "flow": 729.49,
+      "datetime": "2026-05-04 07:00",
+      "stage": 2.479,
+      "flow": 735.19,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -887,10 +887,10 @@
     {
       "station": "D3R003",
       "place": "Orange at Vanderkloof Dam",
-      "datetime": "2026-05-04 05:00",
-      "stage": 61.407,
-      "flow": 103.09,
-      "spill": 167.74,
+      "datetime": "2026-05-04 07:00",
+      "stage": 61.415,
+      "flow": 103.13,
+      "spill": 171.5,
       "comment": "",
       "isDam": true
     },
