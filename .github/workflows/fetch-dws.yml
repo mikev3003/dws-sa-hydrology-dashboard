@@ -2,16 +2,14 @@ name: Fetch DWS Hydrology Data
 
 on:
   schedule:
-    # Runs every hour at :15 past the hour (UTC)
     - cron: '15 * * * *'
   workflow_dispatch:
-    # Allows manual trigger from GitHub Actions tab
 
 jobs:
   fetch-and-commit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed to commit data files back to repo
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -24,16 +22,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lxml
 
       - name: Run DWS scraper
-        run: python fetch_dws.py
+        run: |
+          python fetch_dws.py
 
       - name: Commit and push data files
         run: |
-          git config user.name  "DWS Hydrology Bot"
+          git config user.name "DWS Hydrology Bot"
           git config user.email "bot@waterresearchobservatory.org"
           git add data/
-          # Only commit if something changed
-          git diff --staged --quiet || git commit -m "chore: update DWS hydrology data [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git diff --staged --quiet || git commit -m "chore: update DWS hydrology data"
           git push
