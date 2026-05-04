@@ -1,7 +1,7 @@
 {
   "wma": "WMA4",
   "name": "Vaal-Orange",
-  "fetched_at": "2026-05-04T06:39:38.975172+00:00",
+  "fetched_at": "2026-05-04T07:02:31.037347+00:00",
   "count": 101,
   "stations": [
     {
@@ -17,9 +17,9 @@
     {
       "station": "C1H007",
       "place": "Vaal at Bloukop",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.593,
-      "flow": 7.53,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.589,
+      "flow": 7.49,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -57,9 +57,9 @@
     {
       "station": "C1H019",
       "place": "Outflow from Grootdraai Dam",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.779,
-      "flow": 8.5,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.775,
+      "flow": 8.39,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -67,8 +67,8 @@
     {
       "station": "C1H026",
       "place": "Zaaihoek-Majubapipe  at Elandspoort",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.044,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.042,
       "flow": 0.01,
       "spill": 0.0,
       "comment": "",
@@ -77,9 +77,9 @@
     {
       "station": "C1H044",
       "place": "Leeu Spruit at Welbedacht",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.367,
-      "flow": 1.28,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.365,
+      "flow": 1.26,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -87,9 +87,9 @@
     {
       "station": "C1R001",
       "place": "Vaal at Vaal Dam",
-      "datetime": "2026-05-04 06:00",
-      "stage": 22.946,
-      "flow": 105.44,
+      "datetime": "2026-05-04 07:00",
+      "stage": 22.943,
+      "flow": 105.4,
       "spill": 0.0,
       "comment": "Controlled Spillway",
       "isDam": true
@@ -127,9 +127,9 @@
     {
       "station": "C2H061",
       "place": "Vaal at Klipplaatdrift",
-      "datetime": "2026-05-04 06:00",
-      "stage": 1.367,
-      "flow": 323.63,
+      "datetime": "2026-05-04 07:00",
+      "stage": 1.359,
+      "flow": 320.28,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -157,9 +157,9 @@
     {
       "station": "C2H122",
       "place": "Outflow from Vaal Dam",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.296,
-      "flow": 3.93,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.295,
+      "flow": 3.9,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -177,9 +177,9 @@
     {
       "station": "C2H140",
       "place": "Vaal at Woodlands",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.804,
-      "flow": 89.38,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.725,
+      "flow": 72.99,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -247,8 +247,8 @@
     {
       "station": "C4H004",
       "place": "Vet at Nooitgedacht",
-      "datetime": "2026-05-04 06:00",
-      "stage": 7.548,
+      "datetime": "2026-05-04 07:00",
+      "stage": 7.556,
       "flow": 168.91,
       "spill": 0.0,
       "comment": "Rating Exceeded",
@@ -257,8 +257,8 @@
     {
       "station": "C4H015",
       "place": "Vet at Vaalkoppies",
-      "datetime": "2026-05-04 06:00",
-      "stage": 10.263,
+      "datetime": "2026-05-04 07:00",
+      "stage": 10.246,
       "flow": 267.29,
       "spill": 0.0,
       "comment": "Rating Exceeded",
@@ -267,9 +267,9 @@
     {
       "station": "C4H016",
       "place": "Sand at Bloudrift",
-      "datetime": "2026-05-04 06:00",
-      "stage": 1.479,
-      "flow": 84.97,
+      "datetime": "2026-05-04 07:00",
+      "stage": 1.459,
+      "flow": 83.31,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -277,20 +277,20 @@
     {
       "station": "C4R001",
       "place": "Sand at Allemanskraal Dam",
-      "datetime": "2026-05-04 06:00",
-      "stage": 13.145,
-      "flow": 105.41,
-      "spill": 74.85,
+      "datetime": "2026-05-04 07:00",
+      "stage": 13.139,
+      "flow": 105.32,
+      "spill": 72.87,
       "comment": "",
       "isDam": true
     },
     {
       "station": "C4R002",
       "place": "Groot Vet at Erfenis Dam",
-      "datetime": "2026-05-04 07:00",
-      "stage": 30.991,
-      "flow": 108.15,
-      "spill": 115.31,
+      "datetime": "2026-05-04 08:00",
+      "stage": 30.983,
+      "flow": 108.02,
+      "spill": 112.19,
       "comment": "",
       "isDam": true
     },
@@ -397,10 +397,10 @@
     {
       "station": "C5R001",
       "place": "Tierpoort at Tierpoort Dam",
-      "datetime": "2026-05-04 07:00",
-      "stage": 8.558,
-      "flow": 104.77,
-      "spill": 20.65,
+      "datetime": "2026-05-04 08:00",
+      "stage": 8.553,
+      "flow": 104.63,
+      "spill": 19.75,
       "comment": "",
       "isDam": true
     },
@@ -447,8 +447,8 @@
     {
       "station": "C6H001",
       "place": "Vals at Roodewal",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.961,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.95,
       "flow": 0.0,
       "spill": 0.0,
       "comment": "No Rating",
@@ -457,9 +457,9 @@
     {
       "station": "C6H002",
       "place": "Vals at Bothaville",
-      "datetime": "2026-05-04 06:00",
-      "stage": 2.52,
-      "flow": 91.09,
+      "datetime": "2026-05-04 07:00",
+      "stage": 2.487,
+      "flow": 89.48,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -467,9 +467,9 @@
     {
       "station": "C6H006",
       "place": "Vals at Tweefontein",
-      "datetime": "2026-05-04 06:00",
-      "stage": 3.433,
-      "flow": 100.92,
+      "datetime": "2026-05-04 07:00",
+      "stage": 3.422,
+      "flow": 99.87,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -477,7 +477,7 @@
     {
       "station": "C6H007",
       "place": "Vals at Kroonstadbrug",
-      "datetime": "2026-05-04 06:00",
+      "datetime": "2026-05-04 07:00",
       "stage": 3.051,
       "flow": 37.35,
       "spill": 0.0,
@@ -487,9 +487,9 @@
     {
       "station": "C6H009",
       "place": "Vals at Lindley",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.355,
-      "flow": 5.46,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.35,
+      "flow": 5.31,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -497,9 +497,9 @@
     {
       "station": "C7H019",
       "place": "Renoster at Verheugd",
-      "datetime": "2026-05-04 06:00",
-      "stage": 2.457,
-      "flow": 39.29,
+      "datetime": "2026-05-04 07:00",
+      "stage": 2.409,
+      "flow": 38.24,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -507,10 +507,10 @@
     {
       "station": "C7R001",
       "place": "Renoster at Koppies Dam",
-      "datetime": "2026-05-04 06:00",
-      "stage": 6.149,
-      "flow": 106.99,
-      "spill": 16.55,
+      "datetime": "2026-05-04 07:00",
+      "stage": 6.148,
+      "flow": 106.96,
+      "spill": 16.4,
       "comment": "",
       "isDam": true
     },
@@ -537,9 +537,9 @@
     {
       "station": "C8H005",
       "place": "Elands at Elands River Drift",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.242,
-      "flow": 3.17,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.239,
+      "flow": 3.11,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -587,9 +587,9 @@
     {
       "station": "C8H028",
       "place": "Wilge at Bavaria",
-      "datetime": "2026-05-04 06:00",
-      "stage": 0.396,
-      "flow": 13.58,
+      "datetime": "2026-05-04 07:00",
+      "stage": 0.395,
+      "flow": 13.49,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -617,9 +617,9 @@
     {
       "station": "C8R003",
       "place": "Nuwejaarspr at Sterkfontein Dam",
-      "datetime": "2026-05-04 06:00",
-      "stage": 81.872,
-      "flow": 99.67,
+      "datetime": "2026-05-04 07:00",
+      "stage": 81.866,
+      "flow": 99.66,
       "spill": 0.0,
       "comment": "",
       "isDam": true
@@ -627,7 +627,7 @@
     {
       "station": "C8R004",
       "place": "Liebenbergsvlei at Saulspoort Dam",
-      "datetime": "2026-05-04 06:00",
+      "datetime": "2026-05-04 07:00",
       "stage": 10.561,
       "flow": 102.74,
       "spill": 6.3,
@@ -697,9 +697,9 @@
     {
       "station": "D1H003",
       "place": "Orange at Aliwal North",
-      "datetime": "2026-05-04 05:00",
-      "stage": 1.796,
-      "flow": 762.36,
+      "datetime": "2026-05-04 07:00",
+      "stage": 1.758,
+      "flow": 721.2,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -717,9 +717,9 @@
     {
       "station": "D1H009",
       "place": "Orange at Oranjedraai",
-      "datetime": "2026-05-04 05:00",
-      "stage": 1.769,
-      "flow": 721.8,
+      "datetime": "2026-05-04 07:00",
+      "stage": 1.781,
+      "flow": 730.16,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -737,9 +737,9 @@
     {
       "station": "D1H032",
       "place": "Senqunyane at Marakabei (Lesotho)",
-      "datetime": "2026-05-04 05:00",
-      "stage": 1.144,
-      "flow": 85.94,
+      "datetime": "2026-05-04 07:00",
+      "stage": 1.14,
+      "flow": 85.3,
       "spill": 0.0,
       "comment": "",
       "isDam": false
@@ -757,19 +757,19 @@
     {
       "station": "D1R001",
       "place": "Sterkspruit at Sterkspruit Dam",
-      "datetime": "2026-05-04 07:00",
-      "stage": 15.01,
-      "flow": 101.33,
-      "spill": 2.09,
+      "datetime": "2026-05-04 08:00",
+      "stage": 15.012,
+      "flow": 101.35,
+      "spill": 2.13,
       "comment": "",
       "isDam": true
     },
     {
       "station": "D1R002",
       "place": "Malibamatso at Katse Dam",
-      "datetime": "2026-05-04 05:00",
-      "stage": 117.7,
-      "flow": 99.28,
+      "datetime": "2026-05-04 07:00",
+      "stage": 117.703,
+      "flow": 99.29,
       "spill": 0.0,
       "comment": "",
       "isDam": true
