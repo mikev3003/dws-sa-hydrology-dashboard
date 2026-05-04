@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SA Hydrological Flow Dashboard · DWS Unverified Data</title>
+  <title>WMA1 Limpopo-Olifants · DWS Flow Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --bg:#07070f;--surf:#0f0f1e;--surf2:#13132a;--border:#1c1c38;
-      --text:#dcdcf0;--muted:#52527a;--accent:#00d4aa;--blue:#3b82f6;
-      --warn:#f59e0b;--danger:#ef4444;
+      --text:#dcdcf0;--muted:#52527a;
+      --accent:#00d4aa;--accent2:#34d399;
+      --warn:#f59e0b;--danger:#ef4444;--ok:#00d4aa;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;min-height:100vh;overflow-x:hidden}
@@ -26,39 +27,33 @@
     .pulse{animation:pulse 2s infinite}
     .spin{display:inline-block;animation:spin .7s linear infinite}
 
-    /* HEADER */
-    header{position:relative;background:linear-gradient(160deg,#0a0a1e,#101028 60%,#0b1525);border-bottom:1px solid var(--border);padding:24px 32px 18px;overflow:hidden}
-    header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300d4aa' fill-opacity='0.025'%3E%3Cpath d='M20 20h4v4h-4zm-10 0h4v4h-4zm20 0h4v4h-4zM10 10h4v4h-4zm10 0h4v4h-4zm10 0h4v4h-4z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
-    .scanline{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,170,.35),transparent);animation:scan 5s linear infinite;pointer-events:none}
+    header{position:relative;background:linear-gradient(160deg,#07101a,#0a1a14 60%,#071510);border-bottom:1px solid var(--border);padding:24px 32px 18px;overflow:hidden}
+    header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300d4aa' fill-opacity='0.03'%3E%3Cpath d='M20 20h4v4h-4zm-10 0h4v4h-4zm20 0h4v4h-4zM10 10h4v4h-4zm10 0h4v4h-4zm10 0h4v4h-4z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+    .scanline{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,170,.4),transparent);animation:scan 5s linear infinite;pointer-events:none}
     .orb{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
     .hdr{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px}
-    .dws-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.2);color:var(--accent);padding:3px 11px;border-radius:4px;font-size:9px;letter-spacing:2px;font-weight:700;margin-bottom:7px}
+    .wma-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.25);color:var(--accent);padding:3px 11px;border-radius:4px;font-size:9px;letter-spacing:2px;font-weight:700;margin-bottom:7px}
     .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent)}
     h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;line-height:1.1}
     h1 em{font-style:normal;color:var(--accent)}
     .sub{color:var(--muted);font-size:9px;margin-top:4px;letter-spacing:.5px}
     .hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-    /* BUTTONS */
+    .wma-nav{display:flex;gap:6px;flex-wrap:wrap;padding:12px 32px;background:var(--surf);border-bottom:1px solid var(--border)}
+    .wma-link{padding:5px 11px;border-radius:5px;font-size:9px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:1px;color:var(--muted);text-decoration:none;border:1px solid transparent;transition:all .18s}
+    .wma-link:hover{color:var(--text);border-color:var(--border)}
+    .wma-link.active{color:var(--accent);border-color:var(--accent);background:rgba(0,212,170,.08)}
+
     .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:1px;cursor:pointer;border:none;transition:all .18s;white-space:nowrap}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),#009980);color:#060612;box-shadow:0 3px 16px rgba(0,212,170,.2)}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#059669);color:#060612;box-shadow:0 3px 16px rgba(0,212,170,.2)}
     .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(0,212,170,.3)}
     .btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
     .btn-ghost{background:var(--surf2);border:1px solid var(--border);color:var(--muted)}
     .btn-ghost:hover{color:var(--text);border-color:#3a3a60}
     .btn-ghost.active{color:var(--accent);border-color:var(--accent);background:rgba(0,212,170,.07)}
 
-    /* WMA TABS */
-    .wma-tabs{display:flex;gap:0;overflow-x:auto;border-bottom:1px solid var(--border);padding:0 32px;background:var(--surf)}
-    .wma-tab{padding:12px 16px;font-size:10px;font-family:'Space Mono',monospace;letter-spacing:1px;font-weight:700;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap}
-    .wma-tab:hover{color:var(--text)}
-    .wma-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-    .tab-count{margin-left:4px;font-size:8px;background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px}
-
-    /* MAIN */
     main{max-width:1400px;margin:0 auto;padding:24px 32px 48px}
 
-    /* STATS */
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px}
     .stat{background:var(--surf);border:1px solid var(--border);border-radius:9px;padding:14px 16px;position:relative;overflow:hidden}
     .stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--accent))}
@@ -66,14 +61,16 @@
     .stat-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1;color:var(--c,var(--accent))}
     .stat-unit{font-size:10px;color:var(--muted);margin-left:2px}
 
-    /* INSIGHT */
-    .insight{background:var(--surf);border:1px solid rgba(59,130,246,.18);border-radius:9px;padding:14px 18px;margin-bottom:18px;position:relative;overflow:hidden}
-    .insight::before{content:'';position:absolute;top:0;left:0;width:3px;bottom:0;background:linear-gradient(180deg,var(--blue),var(--accent))}
+    .data-age{display:inline-flex;align-items:center;gap:6px;background:var(--surf2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:9px;color:var(--muted);margin-bottom:18px}
+    .data-age.fresh{border-color:rgba(0,212,170,.3);color:var(--accent)}
+    .data-age.stale{border-color:rgba(245,158,11,.3);color:var(--warn)}
+
+    .insight{background:var(--surf);border:1px solid rgba(0,212,170,.18);border-radius:9px;padding:14px 18px;margin-bottom:18px;position:relative;overflow:hidden}
+    .insight::before{content:'';position:absolute;top:0;left:0;width:3px;bottom:0;background:linear-gradient(180deg,var(--accent),#059669)}
     .insight-hdr{display:flex;align-items:center;gap:7px;margin-bottom:8px;flex-wrap:wrap}
-    .insight-tag{color:var(--blue);font-size:9px;letter-spacing:2px;font-weight:700}
+    .insight-tag{color:var(--accent);font-size:9px;letter-spacing:2px;font-weight:700}
     .insight-body{font-family:'Syne',sans-serif;font-size:12.5px;line-height:1.8;color:#a8a8c8}
 
-    /* CONTROLS */
     .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
     .search{background:var(--surf);border:1px solid var(--border);border-radius:7px;padding:7px 13px;color:var(--text);font-size:11px;font-family:'Space Mono',monospace;outline:none;width:210px;transition:border-color .18s}
     .search:focus{border-color:var(--accent)}
@@ -82,7 +79,6 @@
     .cnt{margin-left:4px;font-size:8px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px}
     .res-count{margin-left:auto;color:var(--muted);font-size:9px}
 
-    /* TABLE */
     .tbl-wrap{background:var(--surf);border:1px solid var(--border);border-radius:9px;overflow:hidden;overflow-x:auto}
     table{width:100%;border-collapse:collapse;font-size:11px}
     thead tr{background:#0b0b1c;border-bottom:1px solid var(--border)}
@@ -90,31 +86,27 @@
     th.sort{cursor:pointer}
     th.sort:hover{color:var(--accent)}
     tbody tr{border-bottom:1px solid rgba(28,28,56,.9);transition:background .12s}
-    tbody tr:hover{background:rgba(0,212,170,.035)}
+    tbody tr:hover{background:rgba(0,212,170,.04)}
     tbody tr:last-child{border-bottom:none}
     td{padding:9px 13px}
     .sc{color:var(--accent);font-weight:700;font-size:11px;text-decoration:none}
     .sc:hover{text-decoration:underline}
-    .dam-lbl{margin-left:4px;color:var(--blue);font-size:7px;letter-spacing:1px;vertical-align:middle}
+    .dam-lbl{margin-left:4px;color:var(--accent2);font-size:7px;letter-spacing:1px;vertical-align:middle}
     .place-cell{color:#b8b8d8}
     .dt-cell{color:var(--muted);white-space:nowrap;font-size:10px}
     .flow-cell{min-width:130px}
     .flow-val{font-weight:700;display:inline-block;min-width:52px;margin-bottom:3px}
     .spill-val{color:var(--warn);font-weight:700}
     .no-spill{color:var(--border)}
-    .cmt-cell{color:var(--muted);font-size:9px;max-width:110px}
+    .cmt-cell{color:var(--muted);font-size:9px;max-width:120px}
 
-    /* BAR */
     .bar-track{width:100%;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
     .bar-fill{height:100%;border-radius:2px;animation:barGrow .7s ease both}
-
-    /* BADGE */
     .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:8px;font-weight:700;letter-spacing:1.5px}
 
-    /* CARDS */
     .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px}
     .card{background:var(--surf);border:1px solid var(--border);border-radius:9px;padding:14px;transition:transform .18s,box-shadow .18s,border-color .18s}
-    .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35);border-color:rgba(0,212,170,.18)}
+    .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35);border-color:rgba(0,212,170,.2)}
     .card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
     .card-sc{font-size:13px;font-weight:700;color:var(--accent)}
     .card-type{font-size:8px;color:var(--muted);margin-top:2px}
@@ -125,15 +117,12 @@
     .card-spill{margin-top:7px;color:var(--warn);font-size:9px;font-weight:700}
     .card-dt{margin-top:5px;color:#2e2e50;font-size:8px}
 
-    /* EMPTY */
     .empty{padding:48px;text-align:center;color:var(--muted);font-size:11px}
-
-    /* TOAST */
     #toast{position:fixed;bottom:18px;right:18px;background:var(--surf2);border:1px solid var(--border);border-radius:7px;padding:9px 15px;font-size:10px;color:var(--muted);z-index:999;transition:opacity .3s;display:none}
 
     @media(max-width:640px){
       header,main{padding-left:16px;padding-right:16px}
-      .wma-tabs{padding:0 16px}
+      .wma-nav{padding:10px 16px}
       h1{font-size:20px}
       .stats{grid-template-columns:1fr 1fr}
     }
@@ -143,50 +132,55 @@
 
 <header>
   <div class="scanline"></div>
-  <div class="orb" style="width:350px;height:350px;top:-180px;right:-80px;background:rgba(0,212,170,.05)"></div>
-  <div class="orb" style="width:250px;height:250px;bottom:-120px;left:150px;background:rgba(59,130,246,.04)"></div>
+  <div class="orb" style="width:350px;height:350px;top:-180px;right:-80px;background:rgba(0,212,170,.06)"></div>
+  <div class="orb" style="width:250px;height:250px;bottom:-120px;left:150px;background:rgba(0,212,170,.03)"></div>
   <div class="hdr fade-up">
     <div>
-      <div class="dws-badge"><span class="dot pulse"></span>DWS · HS-UNVERIFIED DATA</div>
-      <h1>South Africa <em>Hydrological</em> Dashboard</h1>
-      <p class="sub">All 6 Water Management Areas &nbsp;·&nbsp; <span id="last-updated">Not yet loaded</span> &nbsp;·&nbsp; ⚠ Unaudited — not for design purposes</p>
+      <div class="wma-badge"><span class="dot pulse"></span>DWS · HS-UNVERIFIED · WMA1</div>
+      <h1><em>Limpopo-Olifants</em> Flow Dashboard</h1>
+      <p class="sub">Limpopo · Olifants · Crocodile (West) · Letaba · Luvuvhu &nbsp;·&nbsp; <span id="last-updated">Loading…</span> &nbsp;·&nbsp; ⚠ Unaudited — not for design purposes</p>
     </div>
     <div class="hdr-actions">
       <button class="btn btn-ghost" onclick="toggleView()" id="view-btn">⊞ Cards</button>
-      <button class="btn btn-ghost" onclick="fetchInsight()" id="ai-btn">◆ AI Insight</button>
-      <button class="btn btn-primary" onclick="fetchData()" id="fetch-btn">
-        <span id="fetch-icon">↻</span> FETCH LIVE DATA
+      <button class="btn btn-ghost" onclick="fetchInsight()">◆ AI Insight</button>
+      <button class="btn btn-primary" onclick="loadData()" id="fetch-btn">
+        <span id="fetch-icon">↻</span> REFRESH
       </button>
     </div>
   </div>
 </header>
 
-<div class="wma-tabs">
-  <button class="wma-tab active" data-wma="ALL"  onclick="setWma('ALL',this)">ALL WMAs <span class="tab-count" id="tc-ALL">0</span></button>
-  <button class="wma-tab"        data-wma="WMA1" onclick="setWma('WMA1',this)">WMA1 Limpopo-Olifants <span class="tab-count" id="tc-WMA1">0</span></button>
-  <button class="wma-tab"        data-wma="WMA2" onclick="setWma('WMA2',this)">WMA2 Inkomati-Usuthu <span class="tab-count" id="tc-WMA2">0</span></button>
-  <button class="wma-tab"        data-wma="WMA3" onclick="setWma('WMA3',this)">WMA3 Pongola-Mtamvuna <span class="tab-count" id="tc-WMA3">0</span></button>
-  <button class="wma-tab"        data-wma="WMA4" onclick="setWma('WMA4',this)">WMA4 Vaal-Orange <span class="tab-count" id="tc-WMA4">0</span></button>
-  <button class="wma-tab"        data-wma="WMA5" onclick="setWma('WMA5',this)">WMA5 Mzimvubu-Tsitsikama <span class="tab-count" id="tc-WMA5">0</span></button>
-  <button class="wma-tab"        data-wma="WMA6" onclick="setWma('WMA6',this)">WMA6 Breede-Olifants <span class="tab-count" id="tc-WMA6">0</span></button>
+<div class="wma-nav">
+  <a class="wma-link active" href="index.html">WMA1 Limpopo-Olifants</a>
+  <a class="wma-link" href="wma2.html">WMA2 Inkomati-Usuthu</a>
+  <a class="wma-link" href="wma3.html">WMA3 Pongola-Mtamvuna</a>
+  <a class="wma-link" href="wma4.html">WMA4 Vaal-Orange</a>
+  <a class="wma-link" href="wma5.html">WMA5 Mzimvubu-Tsitsikama</a>
+  <a class="wma-link" href="wma6.html">WMA6 Breede-Olifants</a>
 </div>
 
 <main>
+  <!-- Data freshness indicator -->
+  <div class="data-age fade-up" id="data-age">
+    <span id="age-dot" style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span>
+    <span id="age-text">Checking data…</span>
+  </div>
+
   <div class="stats fade-up">
-    <div class="stat" style="--c:var(--accent)"><div class="stat-lbl">Stations</div><div class="stat-val" id="s-total">—</div></div>
+    <div class="stat" style="--c:var(--accent)"><div class="stat-lbl">Total Stations</div><div class="stat-val" id="s-total">—</div></div>
     <div class="stat" style="--c:var(--danger)"><div class="stat-lbl">Critical</div><div class="stat-val" id="s-crit">—</div><span class="stat-unit">stations</span></div>
     <div class="stat" style="--c:var(--warn)"><div class="stat-lbl">Spilling</div><div class="stat-val" id="s-spill">—</div></div>
-    <div class="stat" style="--c:#00d4aa"><div class="stat-lbl">Avg River Flow</div><div class="stat-val" id="s-avg">—<span class="stat-unit">m³/s</span></div></div>
-    <div class="stat" style="--c:var(--blue)"><div class="stat-lbl">Dams</div><div class="stat-val" id="s-dams">—</div></div>
+    <div class="stat" style="--c:var(--ok)"><div class="stat-lbl">Avg River Flow</div><div class="stat-val" id="s-avg">—<span class="stat-unit">m³/s</span></div></div>
+    <div class="stat" style="--c:var(--accent2)"><div class="stat-lbl">Dam Stations</div><div class="stat-val" id="s-dams">—</div></div>
   </div>
 
   <div class="insight fade-up">
     <div class="insight-hdr">
-      <span style="color:var(--blue);font-size:13px">◆</span>
+      <span style="color:var(--accent);font-size:13px">◆</span>
       <span class="insight-tag">AI OPERATIONAL INSIGHT</span>
       <button class="btn btn-ghost" style="margin-left:auto;padding:3px 9px;font-size:8px" onclick="fetchInsight()">↺ REFRESH</button>
     </div>
-    <div class="insight-body" id="insight-text">Click "Fetch Live Data" to load stations, then use AI Insight for an operational briefing.</div>
+    <div class="insight-body" id="insight-text">Click "AI Insight" to generate an operational briefing for WMA1.</div>
   </div>
 
   <div class="controls fade-up">
@@ -202,11 +196,11 @@
   </div>
 
   <div id="data-out" class="fade-up">
-    <div class="tbl-wrap"><div class="empty">↑ Click <strong>FETCH LIVE DATA</strong> to load all WMA stations from DWS.</div></div>
+    <div class="tbl-wrap"><div class="empty">Loading…</div></div>
   </div>
 
   <div style="margin-top:18px;color:var(--muted);font-size:9px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
-    <span>Source: <a href="https://www.dws.gov.za/Hydrology/Unverified/" target="_blank" style="color:var(--accent);text-decoration:none">DWS HS-Unaudited Data</a> · fetched via CORS proxy · auto-refreshes every 30 min</span>
+    <span>Source: <a href="https://www.dws.gov.za/Hydrology/Unverified/" target="_blank" style="color:var(--accent);text-decoration:none">DWS HS-Unaudited Data</a> · updated hourly via GitHub Actions</span>
     <span><a href="https://waterresearchobservatory.org" target="_blank" style="color:var(--accent);text-decoration:none">Water Research Observatory</a></span>
   </div>
 </main>
@@ -215,219 +209,149 @@
 
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────
-let allStations=[], activeWma='ALL', activeFilter='all', currentView='table', sortCol='flow', sortDir='desc';
-
-// ── WMA PREFIX MAP ────────────────────────────────────────────────────────
-function getWma(code){
-  const c=code.toUpperCase();
-  if(/^[AB]/.test(c)) return 'WMA1';  // Limpopo-Olifants
-  if(/^[XW]/.test(c)) return 'WMA2';  // Inkomati-Usuthu
-  if(/^[VT]/.test(c)) return 'WMA3';  // Pongola-Mtamvuna
-  if(/^[CD]/.test(c)) return 'WMA4';  // Vaal-Orange
-  if(/^[EFGHJK]/.test(c)) return 'WMA5'; // Mzimvubu-Tsitsikama
-  if(/^[LMNPQRS]/.test(c)) return 'WMA6'; // Breede-Olifants
-  return 'WMA4';
-}
+let stations=[], activeFilter='all', currentView='table', sortCol='flow', sortDir='desc';
 
 // ── STATUS ────────────────────────────────────────────────────────────────
 function classify(flow,isDam){
   if(isDam){if(flow>110)return'critical';if(flow>95)return'high';if(flow>60)return'normal';return'low';}
   if(flow>400)return'critical';if(flow>100)return'high';if(flow>20)return'normal';return'low';
 }
-const ST={critical:{bg:'#ef4444',lbl:'CRITICAL'},high:{bg:'#f59e0b',lbl:'HIGH'},normal:{bg:'#00d4aa',lbl:'NORMAL'},low:{bg:'#3b82f6',lbl:'LOW'}};
-const WC={WMA1:'#00d4aa',WMA2:'#3b82f6',WMA3:'#a855f7',WMA4:'#f59e0b',WMA5:'#ef4444',WMA6:'#ec4899'};
-
+const ST={
+  critical:{bg:'#ef4444',lbl:'CRITICAL'},
+  high:    {bg:'#f59e0b',lbl:'HIGH'},
+  normal:  {bg:'#00d4aa',lbl:'NORMAL'},
+  low:     {bg:'#3b82f6',lbl:'LOW'},
+};
 function badge(st){const s=ST[st];return`<span class="badge" style="background:${s.bg}1a;color:${s.bg};border:1px solid ${s.bg}44">${s.lbl}</span>`;}
-function bar(flow,isDam){const max=isDam?130:700,pct=Math.min(flow/max*100,100).toFixed(1),c=ST[classify(flow,isDam)].bg;return`<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c};box-shadow:0 0 6px ${c}55"></div></div>`;}
-function wmaPill(wma){const c=WC[wma]||'#666';return`<span style="background:${c}18;color:${c};border:1px solid ${c}44;border-radius:3px;padding:1px 5px;font-size:8px;letter-spacing:1px;font-weight:700">${wma}</span>`;}
-
-// ── TOAST ─────────────────────────────────────────────────────────────────
-function toast(msg,dur=3000){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.style.display='none',300);},dur);}
-
-// ── PARSE DWS HTML ────────────────────────────────────────────────────────
-function parseDWS(html){
-  const doc=new DOMParser().parseFromString(html,'text/html'),rows=[];
-  doc.querySelectorAll('table tr').forEach(tr=>{
-    const tds=tr.querySelectorAll('td');
-    if(tds.length<5) return;
-    const link=tds[0].querySelector('a');
-    if(!link) return;
-    const station=link.textContent.trim();
-    if(!/^[A-Z]\d/i.test(station)) return;
-    const place=tds[1]?.textContent.trim()||'';
-    const datetime=tds[2]?.textContent.trim()||'';
-    const stage=parseFloat((tds[3]?.textContent||'').replace(',',''))||0;
-    const flow=parseFloat((tds[4]?.textContent||'').replace(/,/g,''))||0;
-    const spill=parseFloat((tds[5]?.textContent||'').replace(/,/g,''))||0;
-    const comment=tds[6]?.textContent.trim()||'';
-    const isDam=/R\d/i.test(station);
-    const wma=getWma(station);
-    rows.push({station,place,datetime,stage,flow,spill,comment,isDam,wma});
-  });
-  return rows;
+function bar(flow,isDam){
+  const max=isDam?130:600,pct=Math.min(flow/max*100,100).toFixed(1),c=ST[classify(flow,isDam)].bg;
+  return`<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c};box-shadow:0 0 6px ${c}55"></div></div>`;
+}
+function toast(msg,dur=3000){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.style.display='none',300);},dur);
 }
 
-// ── FETCH LIVE ────────────────────────────────────────────────────────────
-async function fetchData(){
-  const btn=document.getElementById('fetch-btn'),icon=document.getElementById('fetch-icon');
-  btn.disabled=true;icon.className='spin';
-  toast('⟳ Fetching from DWS…',30000);
-  const URL='https://www.dws.gov.za/Hydrology/Unverified/';
-  const PROXIES=[
-    `https://api.allorigins.win/get?url=${encodeURIComponent(URL)}`,
-    `https://corsproxy.io/?${encodeURIComponent(URL)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(URL)}`,
-  ];
-  let html=null;
-  for(const p of PROXIES){
-    try{
-      const r=await fetch(p,{signal:AbortSignal.timeout(14000)});
-      if(!r.ok) continue;
-      const ct=r.headers.get('content-type')||'';
-      if(ct.includes('json')){const j=await r.json();if(j?.contents?.length>500){html=j.contents;break;}}
-      else{const t=await r.text();if(t?.length>500){html=t;break;}}
-    }catch(e){console.warn('proxy fail',p,e);}
+// ── DATA FRESHNESS ────────────────────────────────────────────────────────
+function showDataAge(fetchedAt){
+  const el=document.getElementById('data-age');
+  const txt=document.getElementById('age-text');
+  if(!fetchedAt){el.className='data-age stale';txt.textContent='Using demo data';return;}
+  const age=Math.round((Date.now()-new Date(fetchedAt).getTime())/60000);
+  document.getElementById('last-updated').textContent=
+    new Date(fetchedAt).toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'short'});
+  if(age<90){
+    el.className='data-age fresh';
+    txt.textContent=`Data updated ${age} min ago`;
+  } else {
+    el.className='data-age stale';
+    txt.textContent=`Data is ${Math.round(age/60)}h old — GitHub Action may have failed`;
   }
-  btn.disabled=false;icon.className='';
-  if(!html||html.length<500){toast('⚠ Could not reach DWS — showing demo data',5000);loadDemo();return;}
-  const parsed=parseDWS(html);
-  if(parsed.length<5){toast('⚠ Few stations parsed — showing demo data',5000);loadDemo();return;}
-  allStations=parsed;
-  document.getElementById('last-updated').textContent='Live · '+new Date().toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'short'});
-  toast(`✓ Loaded ${allStations.length} stations`,3000);
+}
+
+// ── LOAD DATA FROM JSON (generated by GitHub Action) ──────────────────────
+async function loadData(){
+  const btn=document.getElementById('fetch-btn'),icon=document.getElementById('fetch-icon');
+  btn.disabled=true; icon.className='spin';
+
+  try{
+    // Add cache-buster so browser always gets the latest file
+    const res=await fetch(`data/wma1.json?t=${Date.now()}`);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json=await res.json();
+
+    if(json.stations && json.stations.length>0){
+      stations=json.stations;
+      showDataAge(json.fetched_at);
+      toast(`✓ Loaded ${stations.length} WMA1 stations`,3000);
+    } else {
+      throw new Error('Empty station list');
+    }
+  } catch(e){
+    console.warn('Could not load data/wma1.json:',e);
+    toast('⚠ JSON not yet generated — using demo data. Run the GitHub Action first.',7000);
+    loadDemo();
+    return;
+  } finally {
+    btn.disabled=false; icon.className='';
+  }
+
   updateAll();
 }
 
-// ── DEMO DATA ─────────────────────────────────────────────────────────────
+// ── DEMO FALLBACK ─────────────────────────────────────────────────────────
 function loadDemo(){
-  allStations=[
-    // WMA1
-    {station:'A2H005',place:'Limpopo at Beit Bridge',datetime:'2026-05-03 05:00',stage:1.842,flow:142.3,spill:0,comment:'',isDam:false,wma:'WMA1'},
-    {station:'A2H006',place:'Limpopo at Makosha',datetime:'2026-05-03 05:00',stage:2.104,flow:217.5,spill:0,comment:'',isDam:false,wma:'WMA1'},
-    {station:'A2H014',place:'Limpopo at Platjan',datetime:'2026-05-03 05:00',stage:1.932,flow:189.6,spill:0,comment:'',isDam:false,wma:'WMA1'},
-    {station:'A2R001',place:'Crocodile at Roodekoppies Dam',datetime:'2026-05-03 05:00',stage:14.23,flow:87.4,spill:0,comment:'',isDam:true,wma:'WMA1'},
-    {station:'A2R002',place:'Mokolo at Mokolo Dam',datetime:'2026-05-03 05:00',stage:18.50,flow:54.2,spill:0,comment:'',isDam:true,wma:'WMA1'},
-    {station:'A4R001',place:'Luvuvhu at Albasini Dam',datetime:'2026-05-03 05:00',stage:20.17,flow:91.6,spill:12.3,comment:'',isDam:true,wma:'WMA1'},
-    {station:'A6R001',place:'Letaba at Ebenezer Dam',datetime:'2026-05-03 05:00',stage:22.63,flow:103.4,spill:8.6,comment:'',isDam:true,wma:'WMA1'},
-    {station:'A7H001',place:'Olifants at Balule',datetime:'2026-05-03 05:00',stage:1.447,flow:94.8,spill:0,comment:'',isDam:false,wma:'WMA1'},
-    {station:'A7R001',place:'Olifants at Loskop Dam',datetime:'2026-05-03 05:00',stage:36.28,flow:108.7,spill:42.1,comment:'',isDam:true,wma:'WMA1'},
-    {station:'A9H001',place:'Olifants at Phalaborwa',datetime:'2026-05-03 05:00',stage:2.183,flow:312.4,spill:0,comment:'',isDam:false,wma:'WMA1'},
-    {station:'B1H004',place:'Crocodile at Kwena Dam',datetime:'2026-05-03 05:00',stage:32.14,flow:72.8,spill:0,comment:'',isDam:true,wma:'WMA1'},
-    {station:'B3H003',place:'Crocodile at Hectorspruit',datetime:'2026-05-03 05:00',stage:1.103,flow:47.3,spill:0,comment:'',isDam:false,wma:'WMA1'},
-    // WMA2
-    {station:'X1H001',place:'Crocodile at Komatipoort',datetime:'2026-05-03 06:00',stage:1.204,flow:87.4,spill:0,comment:'',isDam:false,wma:'WMA2'},
-    {station:'X1H020',place:'Crocodile at Tenbosch',datetime:'2026-05-03 06:00',stage:0.842,flow:34.2,spill:0,comment:'',isDam:false,wma:'WMA2'},
-    {station:'X1R001',place:'Crocodile at Kwena Dam',datetime:'2026-05-03 06:00',stage:19.43,flow:88.3,spill:0,comment:'',isDam:true,wma:'WMA2'},
-    {station:'X2H010',place:'Sabie at Sabie',datetime:'2026-05-03 06:00',stage:0.621,flow:12.4,spill:0,comment:'',isDam:false,wma:'WMA2'},
-    {station:'X2R001',place:'Sabie at Injaka Dam',datetime:'2026-05-03 06:00',stage:16.82,flow:74.1,spill:0,comment:'',isDam:true,wma:'WMA2'},
-    {station:'W1H006',place:'Usuthu at Lomahasha',datetime:'2026-05-03 06:00',stage:0.984,flow:44.7,spill:0,comment:'',isDam:false,wma:'WMA2'},
-    {station:'W3R001',place:'Usuthu at Pongolapoort Dam',datetime:'2026-05-03 06:00',stage:42.18,flow:96.4,spill:0,comment:'',isDam:true,wma:'WMA2'},
-    // WMA3
-    {station:'V1H009',place:'Pongola at Pongola',datetime:'2026-05-03 07:00',stage:0.742,flow:18.3,spill:0,comment:'',isDam:false,wma:'WMA3'},
-    {station:'V6H004',place:'Thukela at Mandini',datetime:'2026-05-03 07:00',stage:1.843,flow:214.6,spill:0,comment:'',isDam:false,wma:'WMA3'},
-    {station:'V2R001',place:'Bivane at Bivane Dam',datetime:'2026-05-03 07:00',stage:14.62,flow:82.4,spill:0,comment:'',isDam:true,wma:'WMA3'},
-    {station:'V3R002',place:'Thukela at Spioenkop Dam',datetime:'2026-05-03 07:00',stage:22.41,flow:91.8,spill:0,comment:'',isDam:true,wma:'WMA3'},
-    {station:'T3R001',place:'Umgeni at Midmar Dam',datetime:'2026-05-03 07:00',stage:18.93,flow:97.2,spill:3.4,comment:'',isDam:true,wma:'WMA3'},
-    {station:'T4H001',place:'Mgeni at Inanda Dam',datetime:'2026-05-03 07:00',stage:22.04,flow:104.1,spill:18.2,comment:'',isDam:true,wma:'WMA3'},
-    // WMA4
-    {station:'C1H007',place:'Vaal at Bloukop',datetime:'2026-05-03 11:00',stage:0.672,flow:8.31,spill:0,comment:'',isDam:false,wma:'WMA4'},
-    {station:'C1H012',place:'Vaal at Gladdedrift',datetime:'2026-05-03 11:00',stage:1.348,flow:41.98,spill:0,comment:'',isDam:false,wma:'WMA4'},
-    {station:'C1R001',place:'Vaal at Vaal Dam',datetime:'2026-05-03 11:00',stage:22.93,flow:105.26,spill:0,comment:'Controlled Spillway',isDam:true,wma:'WMA4'},
-    {station:'C1R002',place:'Vaal at Grootdraai Dam',datetime:'2026-05-03 09:00',stage:27.17,flow:102.16,spill:16.05,comment:'',isDam:true,wma:'WMA4'},
-    {station:'C2H061',place:'Vaal at Klipplaatdrift',datetime:'2026-05-03 11:00',stage:1.571,flow:414.17,spill:0,comment:'',isDam:false,wma:'WMA4'},
-    {station:'C2R001',place:'Mooi at Boskop Dam',datetime:'2026-05-03 06:00',stage:12.48,flow:105.83,spill:19.3,comment:'',isDam:true,wma:'WMA4'},
-    {station:'C4H004',place:'Vet at Nooitgedacht',datetime:'2026-05-03 09:00',stage:7.110,flow:168.91,spill:0,comment:'Rating Exceeded',isDam:false,wma:'WMA4'},
-    {station:'C4R001',place:'Sand at Allemanskraal Dam',datetime:'2026-05-03 10:00',stage:13.26,flow:107.32,spill:117.6,comment:'',isDam:true,wma:'WMA4'},
-    {station:'C9R002',place:'Vaal at Bloemhof Dam',datetime:'2026-05-03 06:00',stage:18.62,flow:112.31,spill:0,comment:'Controlled Spillway',isDam:true,wma:'WMA4'},
-    {station:'D1H003',place:'Orange at Aliwal North',datetime:'2026-05-03 09:00',stage:2.071,flow:1094.3,spill:0,comment:'',isDam:false,wma:'WMA4'},
-    {station:'D3R002',place:'Orange at Gariep Dam',datetime:'2026-05-03 09:00',stage:55.88,flow:100.49,spill:7.56,comment:'',isDam:true,wma:'WMA4'},
-    {station:'D3R003',place:'Orange at Vanderkloof Dam',datetime:'2026-05-03 09:00',stage:61.34,flow:102.8,spill:141,comment:'',isDam:true,wma:'WMA4'},
-    {station:'D7H005',place:'Orange at Upington',datetime:'2026-05-03 05:00',stage:3.959,flow:1165.4,spill:0,comment:'',isDam:false,wma:'WMA4'},
-    // WMA5
-    {station:'E1H003',place:'Mzimvubu at Thule',datetime:'2026-05-03 08:00',stage:1.102,flow:84.2,spill:0,comment:'',isDam:false,wma:'WMA5'},
-    {station:'E2H002',place:'Tsitsa at Xonxa',datetime:'2026-05-03 08:00',stage:0.841,flow:32.4,spill:0,comment:'',isDam:false,wma:'WMA5'},
-    {station:'E4H001',place:'Umtata at Umtata Dam',datetime:'2026-05-03 08:00',stage:14.21,flow:78.3,spill:0,comment:'',isDam:true,wma:'WMA5'},
-    {station:'F3H001',place:'Fish at Commadagga',datetime:'2026-05-03 08:00',stage:1.021,flow:46.3,spill:0,comment:'',isDam:false,wma:'WMA5'},
-    {station:'F7R001',place:'Gamtoos at Loerie Dam',datetime:'2026-05-03 08:00',stage:11.84,flow:62.4,spill:0,comment:'',isDam:true,wma:'WMA5'},
-    {station:'H1H006',place:'Gouritz at Groot Brak',datetime:'2026-05-03 08:00',stage:0.384,flow:5.4,spill:0,comment:'',isDam:false,wma:'WMA5'},
-    // WMA6
-    {station:'G1H007',place:'Breede at Villiersdorp',datetime:'2026-05-03 09:00',stage:0.842,flow:24.3,spill:0,comment:'',isDam:false,wma:'WMA6'},
-    {station:'G1R003',place:'Breede at Theewaterskloof Dam',datetime:'2026-05-03 09:00',stage:58.14,flow:84.2,spill:0,comment:'',isDam:true,wma:'WMA6'},
-    {station:'G2H012',place:'Breede at Swellendam',datetime:'2026-05-03 09:00',stage:1.204,flow:68.4,spill:0,comment:'',isDam:false,wma:'WMA6'},
-    {station:'G4R001',place:'Hex at Brandvlei Dam',datetime:'2026-05-03 09:00',stage:34.82,flow:72.1,spill:0,comment:'',isDam:true,wma:'WMA6'},
-    {station:'H4H006',place:'Olifants at Clanwilliam',datetime:'2026-05-03 09:00',stage:0.924,flow:38.6,spill:0,comment:'',isDam:false,wma:'WMA6'},
-    {station:'H4R001',place:'Olifants at Clanwilliam Dam',datetime:'2026-05-03 09:00',stage:47.32,flow:91.4,spill:0,comment:'',isDam:true,wma:'WMA6'},
-    {station:'K5R001',place:'Berg at Theewaterskloof',datetime:'2026-05-03 09:00',stage:12.42,flow:68.9,spill:0,comment:'',isDam:true,wma:'WMA6'},
+  stations=[
+    {station:'A2H005',place:'Limpopo at Beit Bridge',        datetime:'—',stage:1.842,flow:142.3, spill:0,   comment:'Demo data',isDam:false},
+    {station:'A2H006',place:'Limpopo at Makosha',            datetime:'—',stage:2.104,flow:217.5, spill:0,   comment:'Demo data',isDam:false},
+    {station:'A2H014',place:'Limpopo at Platjan',            datetime:'—',stage:1.932,flow:189.6, spill:0,   comment:'Demo data',isDam:false},
+    {station:'A2R001',place:'Crocodile at Roodekoppies Dam', datetime:'—',stage:14.23,flow:87.4,  spill:0,   comment:'Demo data',isDam:true},
+    {station:'A2R002',place:'Mokolo at Mokolo Dam',          datetime:'—',stage:18.50,flow:54.2,  spill:0,   comment:'Demo data',isDam:true},
+    {station:'A4R001',place:'Luvuvhu at Albasini Dam',       datetime:'—',stage:20.17,flow:91.6,  spill:12.3,comment:'Demo data',isDam:true},
+    {station:'A6R001',place:'Letaba at Ebenezer Dam',        datetime:'—',stage:22.63,flow:103.4, spill:8.6, comment:'Demo data',isDam:true},
+    {station:'A7H001',place:'Olifants at Balule',            datetime:'—',stage:1.447,flow:94.8,  spill:0,   comment:'Demo data',isDam:false},
+    {station:'A7R001',place:'Olifants at Loskop Dam',        datetime:'—',stage:36.28,flow:108.7, spill:42.1,comment:'Demo data',isDam:true},
+    {station:'A9H001',place:'Olifants at Phalaborwa',        datetime:'—',stage:2.183,flow:312.4, spill:0,   comment:'Demo data',isDam:false},
+    {station:'B1H004',place:'Crocodile at Kwena Dam',        datetime:'—',stage:32.14,flow:72.8,  spill:0,   comment:'Demo data',isDam:true},
+    {station:'B3H003',place:'Crocodile at Hectorspruit',     datetime:'—',stage:1.103,flow:47.3,  spill:0,   comment:'Demo data',isDam:false},
   ];
-  document.getElementById('last-updated').textContent='Demo data · '+new Date().toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'short'});
+  showDataAge(null);
   updateAll();
 }
 
-// ── UPDATE ALL ────────────────────────────────────────────────────────────
-function updateAll(){updateTabCounts();updateStats();updateFilterCounts();render();}
-function stationsForWma(){return activeWma==='ALL'?allStations:allStations.filter(s=>s.wma===activeWma);}
-
-function updateTabCounts(){
-  const counts={ALL:allStations.length,WMA1:0,WMA2:0,WMA3:0,WMA4:0,WMA5:0,WMA6:0};
-  allStations.forEach(s=>{if(counts[s.wma]!==undefined)counts[s.wma]++;});
-  Object.keys(counts).forEach(k=>{const el=document.getElementById('tc-'+k);if(el)el.textContent=counts[k];});
-}
+// ── UPDATE ────────────────────────────────────────────────────────────────
+function updateAll(){updateStats();updateFilterCounts();render();}
 
 function updateStats(){
-  const s=stationsForWma(),rivers=s.filter(x=>!x.isDam),crit=s.filter(x=>classify(x.flow,x.isDam)==='critical'),spill=s.filter(x=>x.spill>0),avg=rivers.length?rivers.reduce((a,x)=>a+x.flow,0)/rivers.length:0;
-  document.getElementById('s-total').textContent=s.length;
-  document.getElementById('s-crit').textContent=crit.length;
+  const rivers=stations.filter(x=>!x.isDam);
+  const crit  =stations.filter(x=>classify(x.flow,x.isDam)==='critical');
+  const spill =stations.filter(x=>x.spill>0);
+  const avg   =rivers.length?rivers.reduce((a,x)=>a+x.flow,0)/rivers.length:0;
+  document.getElementById('s-total').textContent=stations.length;
+  document.getElementById('s-crit').textContent =crit.length;
   document.getElementById('s-spill').textContent=spill.length;
-  document.getElementById('s-avg').innerHTML=avg.toFixed(1)+'<span class="stat-unit">m³/s</span>';
-  document.getElementById('s-dams').textContent=s.filter(x=>x.isDam).length;
+  document.getElementById('s-avg').innerHTML    =avg.toFixed(1)+'<span class="stat-unit">m³/s</span>';
+  document.getElementById('s-dams').textContent =stations.filter(x=>x.isDam).length;
 }
-
 function updateFilterCounts(){
-  const s=stationsForWma();
-  document.getElementById('fc-all').textContent=s.length;
-  document.getElementById('fc-rivers').textContent=s.filter(x=>!x.isDam).length;
-  document.getElementById('fc-dams').textContent=s.filter(x=>x.isDam).length;
-  document.getElementById('fc-spilling').textContent=s.filter(x=>x.spill>0).length;
-  document.getElementById('fc-critical').textContent=s.filter(x=>classify(x.flow,x.isDam)==='critical').length;
+  document.getElementById('fc-all').textContent     =stations.length;
+  document.getElementById('fc-rivers').textContent  =stations.filter(x=>!x.isDam).length;
+  document.getElementById('fc-dams').textContent    =stations.filter(x=>x.isDam).length;
+  document.getElementById('fc-spilling').textContent=stations.filter(x=>x.spill>0).length;
+  document.getElementById('fc-critical').textContent=stations.filter(x=>classify(x.flow,x.isDam)==='critical').length;
 }
-
-// ── TABS & FILTERS ────────────────────────────────────────────────────────
-function setWma(wma,el){activeWma=wma;document.querySelectorAll('.wma-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');updateStats();updateFilterCounts();render();}
 function setFilter(f,el){activeFilter=f;document.querySelectorAll('[data-f]').forEach(b=>b.classList.remove('active'));el.classList.add('active');render();}
 function toggleView(){currentView=currentView==='table'?'cards':'table';document.getElementById('view-btn').textContent=currentView==='table'?'⊞ Cards':'≡ Table';render();}
 function sortBy(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='desc';}render();}
 
 function getFiltered(){
   const q=document.getElementById('search').value.toLowerCase();
-  return stationsForWma()
+  return stations
     .filter(s=>{if(activeFilter==='rivers')return!s.isDam;if(activeFilter==='dams')return s.isDam;if(activeFilter==='spilling')return s.spill>0;if(activeFilter==='critical')return classify(s.flow,s.isDam)==='critical';return true;})
-    .filter(s=>!q||s.station.toLowerCase().includes(q)||s.place.toLowerCase().includes(q)||s.wma.toLowerCase().includes(q))
+    .filter(s=>!q||s.station.toLowerCase().includes(q)||s.place.toLowerCase().includes(q))
     .sort((a,b)=>{const va=sortCol==='flow'?a.flow:sortCol==='stage'?a.stage:a.station,vb=sortCol==='flow'?b.flow:sortCol==='stage'?b.stage:b.station;if(typeof va==='string')return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);return sortDir==='asc'?va-vb:vb-va;});
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────
 function render(){
-  const filtered=getFiltered();
-  document.getElementById('res-count').textContent=`${filtered.length} of ${stationsForWma().length} stations`;
+  const f=getFiltered();
+  document.getElementById('res-count').textContent=`${f.length} of ${stations.length} stations`;
   const out=document.getElementById('data-out');
-  if(!allStations.length){out.innerHTML='<div class="tbl-wrap"><div class="empty">↑ Click <strong>FETCH LIVE DATA</strong> to load stations.</div></div>';return;}
-  if(!filtered.length){out.innerHTML='<div class="tbl-wrap"><div class="empty">No stations match your filters.</div></div>';return;}
-  currentView==='cards'?renderCards(filtered,out):renderTable(filtered,out);
+  if(!f.length){out.innerHTML='<div class="tbl-wrap"><div class="empty">No stations match your filters.</div></div>';return;}
+  currentView==='cards'?renderCards(f,out):renderTable(f,out);
 }
 
 function arrow(col){if(sortCol!==col)return'<span style="color:#2a2a4a">⇅</span>';return`<span style="color:var(--accent)">${sortDir==='asc'?'▲':'▼'}</span>`;}
 
 function renderTable(data,out){
-  const showWma=activeWma==='ALL';
   const rows=data.map(s=>{
     const st=classify(s.flow,s.isDam),color=ST[st].bg;
     const fv=s.isDam?`<span class="flow-val" style="color:${color}">${s.flow.toFixed(1)}%</span>`:`<span class="flow-val" style="color:${color}">${s.flow.toFixed(2)}</span><span style="color:var(--muted);font-size:9px">m³/s</span>`;
     return`<tr>
       <td><a class="sc" href="https://www.dws.gov.za/Hydrology/Unverified/" target="_blank" onclick="event.stopPropagation()">${s.station}</a>${s.isDam?'<span class="dam-lbl">DAM</span>':''}</td>
-      ${showWma?`<td>${wmaPill(s.wma)}</td>`:''}
       <td class="place-cell">${s.place}</td>
       <td class="dt-cell">${s.datetime||'—'}</td>
-      <td style="font-weight:700">${s.stage.toFixed(3)}</td>
+      <td style="font-weight:700">${typeof s.stage==='number'?s.stage.toFixed(3):s.stage}</td>
       <td class="flow-cell">${fv}<div style="margin-top:3px">${bar(s.flow,s.isDam)}</div></td>
       <td>${s.spill>0?`<span class="spill-val">${s.spill.toFixed(2)}</span>`:'<span class="no-spill">—</span>'}</td>
       <td>${badge(st)}</td>
@@ -437,7 +361,6 @@ function renderTable(data,out){
   out.innerHTML=`<div class="tbl-wrap"><table>
     <thead><tr>
       <th class="sort" onclick="sortBy('station')">STATION ${arrow('station')}</th>
-      ${showWma?'<th>WMA</th>':''}
       <th>LOCATION</th><th>DATE/TIME</th>
       <th class="sort" onclick="sortBy('stage')">STAGE (m) ${arrow('stage')}</th>
       <th class="sort" onclick="sortBy('flow')">FLOW / CAP ${arrow('flow')}</th>
@@ -452,10 +375,10 @@ function renderCards(data,out){
     const st=classify(s.flow,s.isDam),color=ST[st].bg;
     const fl=s.isDam?`${s.flow.toFixed(1)}%`:`${s.flow.toFixed(2)} m³/s`;
     return`<div class="card">
-      <div class="card-hd"><div><div class="card-sc">${s.station} ${wmaPill(s.wma)}</div><div class="card-type">${s.isDam?'🏗 Dam':'🌊 River station'}</div></div>${badge(st)}</div>
+      <div class="card-hd"><div><div class="card-sc">${s.station}</div><div class="card-type">${s.isDam?'🏗 Dam':'🌊 River station'}</div></div>${badge(st)}</div>
       <div class="card-place">${s.place}</div>
       <div style="margin-bottom:8px">${bar(s.flow,s.isDam)}</div>
-      <div class="card-metrics"><div><span class="card-ml">Flow/Cap: </span><span class="card-mv" style="color:${color}">${fl}</span></div><div><span class="card-ml">Stage: </span><span class="card-mv">${s.stage.toFixed(3)} m</span></div></div>
+      <div class="card-metrics"><div><span class="card-ml">Flow/Cap: </span><span class="card-mv" style="color:${color}">${fl}</span></div><div><span class="card-ml">Stage: </span><span class="card-mv">${typeof s.stage==='number'?s.stage.toFixed(3):s.stage} m</span></div></div>
       ${s.spill>0?`<div class="card-spill">⚠ SPILLING: ${s.spill.toFixed(2)} m³/s</div>`:''}
       <div class="card-dt">${s.datetime||''} ${s.comment?'· '+s.comment:''}</div>
     </div>`;
@@ -465,13 +388,15 @@ function renderCards(data,out){
 
 // ── AI INSIGHT ────────────────────────────────────────────────────────────
 async function fetchInsight(){
-  if(!allStations.length){toast('Load data first',3000);return;}
+  if(!stations.length){toast('Load data first',3000);return;}
   const txt=document.getElementById('insight-text');
-  txt.textContent='Analysing hydrological conditions…';
-  const s=stationsForWma(),rivers=s.filter(x=>!x.isDam),crit=s.filter(x=>classify(x.flow,x.isDam)==='critical'),spill=s.filter(x=>x.spill>0),avg=rivers.length?rivers.reduce((a,x)=>a+x.flow,0)/rivers.length:0;
-  const top5=[...s].sort((a,b)=>b.flow-a.flow).slice(0,5).map(x=>`${x.station}(${x.wma}):${x.flow.toFixed(1)}`).join(', ');
-  const label=activeWma==='ALL'?'all 6 WMAs (national view)':activeWma;
-  const prompt=`You are a senior hydrologist at South Africa's DWS. Write a concise 2–3 sentence operational briefing for ${label} unverified flow data. Highlight risk level, critical/spilling infrastructure, and notable conditions. Be direct and technical. No bullet points.\n\nSnapshot:\n- Stations: ${s.length}\n- Critical: ${crit.length} (${crit.slice(0,5).map(x=>x.station).join(', ')||'none'})\n- Spilling: ${spill.slice(0,5).map(x=>`${x.station} ${x.spill.toFixed(1)}m³/s`).join(', ')||'none'}\n- Avg river flow: ${avg.toFixed(1)} m³/s\n- Top flows: ${top5}`;
+  txt.textContent='Analysing WMA1 Limpopo-Olifants conditions…';
+  const rivers=stations.filter(x=>!x.isDam);
+  const crit  =stations.filter(x=>classify(x.flow,x.isDam)==='critical');
+  const spill =stations.filter(x=>x.spill>0);
+  const avg   =rivers.length?rivers.reduce((a,x)=>a+x.flow,0)/rivers.length:0;
+  const top5  =[...stations].sort((a,b)=>b.flow-a.flow).slice(0,5).map(x=>`${x.station}: ${x.flow.toFixed(1)}`).join(', ');
+  const prompt=`You are a senior hydrologist at South Africa's DWS. Write a concise 2–3 sentence operational briefing for WMA1 (Limpopo-Olifants: Limpopo, Olifants, Letaba, Luvuvhu, Crocodile West rivers). Highlight risk level, critical/spilling infrastructure, and notable flow conditions. Be direct and technical. No bullet points.\n\nSnapshot:\n- Stations: ${stations.length}\n- Critical: ${crit.length} (${crit.slice(0,5).map(x=>x.station).join(', ')||'none'})\n- Spilling: ${spill.map(x=>`${x.station} ${x.spill.toFixed(1)}m³/s`).join(', ')||'none'}\n- Avg river flow: ${avg.toFixed(1)} m³/s\n- Top flows: ${top5}`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
     const json=await res.json();
@@ -479,11 +404,10 @@ async function fetchInsight(){
   }catch{txt.textContent='AI insight unavailable.';}
 }
 
-// ── AUTO-REFRESH ──────────────────────────────────────────────────────────
-setInterval(()=>{if(allStations.length>0)fetchData();},30*60*1000);
-
-// ── INIT ──────────────────────────────────────────────────────────────────
-loadDemo();
+// ── INIT — load from JSON, fall back to demo ──────────────────────────────
+loadData();
+// Re-check every 10 minutes in case the Action ran while page is open
+setInterval(loadData, 10*60*1000);
 </script>
 </body>
 </html>
