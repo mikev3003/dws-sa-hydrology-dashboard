@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WMA2 Inkomati-Usuthu · DWS Flow Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#07070f;--surf:#0f0f1e;--surf2:#13132a;--border:#1c1c38;
+      --text:#dcdcf0;--muted:#52527a;
+      --accent:#3b82f6;   /* WMA2 blue */
+      --accent2:#60a5fa;
+      --warn:#f59e0b;--danger:#ef4444;--ok:#00d4aa;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;font-size:13px;min-height:100vh;overflow-x:hidden}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:var(--surf)}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes scan{0%{top:-3%}100%{top:103%}}
+    @keyframes barGrow{from{width:0}}
+    .fade-up{animation:fadeUp .45s ease both}
+    .pulse{animation:pulse 2s infinite}
+    .spin{display:inline-block;animation:spin .7s linear infinite}
+
+    /* HEADER */
+    header{position:relative;background:linear-gradient(160deg,#080820,#0e1030 60%,#091828);border-bottom:1px solid var(--border);padding:24px 32px 18px;overflow:hidden}
+    header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%233b82f6' fill-opacity='0.03'%3E%3Cpath d='M20 20h4v4h-4zm-10 0h4v4h-4zm20 0h4v4h-4zM10 10h4v4h-4zm10 0h4v4h-4zm10 0h4v4h-4z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+    .scanline{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.4),transparent);animation:scan 5s linear infinite;pointer-events:none}
+    .orb{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
+    .hdr{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px}
+    .wma-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:var(--accent);padding:3px 11px;border-radius:4px;font-size:9px;letter-spacing:2px;font-weight:700;margin-bottom:7px}
+    .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+    h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;line-height:1.1}
+    h1 em{font-style:normal;color:var(--accent)}
+    .sub{color:var(--muted);font-size:9px;margin-top:4px;letter-spacing:.5px}
+    .hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+    /* NAV LINKS */
+    .wma-nav{display:flex;gap:6px;flex-wrap:wrap;padding:12px 32px;background:var(--surf);border-bottom:1px solid var(--border)}
+    .wma-link{padding:5px 11px;border-radius:5px;font-size:9px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:1px;color:var(--muted);text-decoration:none;border:1px solid transparent;transition:all .18s}
+    .wma-link:hover{color:var(--text);border-color:var(--border)}
+    .wma-link.active{color:var(--accent);border-color:var(--accent);background:rgba(59,130,246,.08)}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:1px;cursor:pointer;border:none;transition:all .18s;white-space:nowrap}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;box-shadow:0 3px 16px rgba(59,130,246,.25)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(59,130,246,.35)}
+    .btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .btn-ghost{background:var(--surf2);border:1px solid var(--border);color:var(--muted)}
+    .btn-ghost:hover{color:var(--text);border-color:#3a3a60}
+    .btn-ghost.active{color:var(--accent);border-color:var(--accent);background:rgba(59,130,246,.07)}
+
+    /* MAIN */
+    main{max-width:1400px;margin:0 auto;padding:24px 32px 48px}
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:18px}
+    .stat{background:var(--surf);border:1px solid var(--border);border-radius:9px;padding:14px 16px;position:relative;overflow:hidden}
+    .stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--accent))}
+    .stat-lbl{color:var(--muted);font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+    .stat-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1;color:var(--c,var(--accent))}
+    .stat-unit{font-size:10px;color:var(--muted);margin-left:2px}
+
+    /* INSIGHT */
+    .insight{background:var(--surf);border:1px solid rgba(59,130,246,.2);border-radius:9px;padding:14px 18px;margin-bottom:18px;position:relative;overflow:hidden}
+    .insight::before{content:'';position:absolute;top:0;left:0;width:3px;bottom:0;background:linear-gradient(180deg,var(--accent),var(--ok))}
+    .insight-hdr{display:flex;align-items:center;gap:7px;margin-bottom:8px;flex-wrap:wrap}
+    .insight-tag{color:var(--accent);font-size:9px;letter-spacing:2px;font-weight:700}
+    .insight-body{font-family:'Syne',sans-serif;font-size:12.5px;line-height:1.8;color:#a8a8c8}
+
+    /* CONTROLS */
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+    .search{background:var(--surf);border:1px solid var(--border);border-radius:7px;padding:7px 13px;color:var(--text);font-size:11px;font-family:'Space Mono',monospace;outline:none;width:210px;transition:border-color .18s}
+    .search:focus{border-color:var(--accent)}
+    .search::placeholder{color:var(--muted)}
+    .filter-group{display:flex;gap:5px;flex-wrap:wrap}
+    .cnt{margin-left:4px;font-size:8px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px}
+    .res-count{margin-left:auto;color:var(--muted);font-size:9px}
+
+    /* TABLE */
+    .tbl-wrap{background:var(--surf);border:1px solid var(--border);border-radius:9px;overflow:hidden;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    thead tr{background:#0b0b1c;border-bottom:1px solid var(--border)}
+    th{padding:11px 13px;text-align:left;color:var(--muted);font-size:8px;letter-spacing:1.5px;font-weight:700;white-space:nowrap;user-select:none}
+    th.sort{cursor:pointer}
+    th.sort:hover{color:var(--accent)}
+    tbody tr{border-bottom:1px solid rgba(28,28,56,.9);transition:background .12s}
+    tbody tr:hover{background:rgba(59,130,246,.04)}
+    tbody tr:last-child{border-bottom:none}
+    td{padding:9px 13px}
+    .sc{color:var(--accent);font-weight:700;font-size:11px;text-decoration:none}
+    .sc:hover{text-decoration:underline}
+    .dam-lbl{margin-left:4px;color:var(--accent2);font-size:7px;letter-spacing:1px;vertical-align:middle}
+    .place-cell{color:#b8b8d8}
+    .dt-cell{color:var(--muted);white-space:nowrap;font-size:10px}
+    .flow-cell{min-width:130px}
+    .flow-val{font-weight:700;display:inline-block;min-width:52px;margin-bottom:3px}
+    .spill-val{color:var(--warn);font-weight:700}
+    .no-spill{color:var(--border)}
+    .cmt-cell{color:var(--muted);font-size:9px;max-width:120px}
+
+    /* BAR */
+    .bar-track{width:100%;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:2px;animation:barGrow .7s ease both}
+
+    /* BADGE */
+    .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:8px;font-weight:700;letter-spacing:1.5px}
+
+    /* CARDS */
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px}
+    .card{background:var(--surf);border:1px solid var(--border);border-radius:9px;padding:14px;transition:transform .18s,box-shadow .18s,border-color .18s}
+    .card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35);border-color:rgba(59,130,246,.2)}
+    .card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+    .card-sc{font-size:13px;font-weight:700;color:var(--accent)}
+    .card-type{font-size:8px;color:var(--muted);margin-top:2px}
+    .card-place{color:#a8a8c8;font-size:10px;margin-bottom:10px;line-height:1.4}
+    .card-metrics{display:flex;justify-content:space-between;font-size:10px;margin-top:6px}
+    .card-ml{color:var(--muted)}
+    .card-mv{font-weight:700}
+    .card-spill{margin-top:7px;color:var(--warn);font-size:9px;font-weight:700}
+    .card-dt{margin-top:5px;color:#2e2e50;font-size:8px}
+
+    /* EMPTY */
+    .empty{padding:48px;text-align:center;color:var(--muted);font-size:11px}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:18px;right:18px;background:var(--surf2);border:1px solid var(--border);border-radius:7px;padding:9px 15px;font-size:10px;color:var(--muted);z-index:999;transition:opacity .3s;display:none}
+
+    @media(max-width:640px){
+      header,main{padding-left:16px;padding-right:16px}
+      .wma-nav{padding:10px 16px}
+      h1{font-size:20px}
+      .stats{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="scanline"></div>
+  <div class="orb" style="width:350px;height:350px;top:-180px;right:-80px;background:rgba(59,130,246,.06)"></div>
+  <div class="orb" style="width:250px;height:250px;bottom:-120px;left:150px;background:rgba(0,212,170,.04)"></div>
+  <div class="hdr fade-up">
+    <div>
+      <div class="wma-badge"><span class="dot pulse"></span>DWS · HS-UNVERIFIED · WMA2</div>
+      <h1><em>Inkomati-Usuthu</em> Flow Dashboard</h1>
+      <p class="sub">Crocodile · Sabie · Olifants (East) · Usuthu &nbsp;·&nbsp; <span id="last-updated">Demo data</span> &nbsp;·&nbsp; ⚠ Unaudited — not for design purposes</p>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-ghost" onclick="toggleView()" id="view-btn">⊞ Cards</button>
+      <button class="btn btn-ghost" onclick="fetchInsight()">◆ AI Insight</button>
+      <button class="btn btn-primary" onclick="fetchData()" id="fetch-btn">
+        <span id="fetch-icon">↻</span> FETCH LIVE DATA
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- WMA navigation -->
+<div class="wma-nav">
+  <a class="wma-link" href="index.html">WMA1 Limpopo-Olifants</a>
+  <a class="wma-link active" href="wma2.html">WMA2 Inkomati-Usuthu</a>
+  <a class="wma-link" href="wma3.html">WMA3 Pongola-Mtamvuna</a>
+  <a class="wma-link" href="wma4.html">WMA4 Vaal-Orange</a>
+  <a class="wma-link" href="wma5.html">WMA5 Mzimvubu-Tsitsikama</a>
+  <a class="wma-link" href="wma6.html">WMA6 Breede-Olifants</a>
+</div>
+
+<main>
+  <div class="stats fade-up">
+    <div class="stat" style="--c:var(--accent)"><div class="stat-lbl">Total Stations</div><div class="stat-val" id="s-total">—</div></div>
+    <div class="stat" style="--c:var(--danger)"><div class="stat-lbl">Critical</div><div class="stat-val" id="s-crit">—</div><span class="stat-unit">stations</span></div>
+    <div class="stat" style="--c:var(--warn)"><div class="stat-lbl">Spilling</div><div class="stat-val" id="s-spill">—</div></div>
+    <div class="stat" style="--c:var(--ok)"><div class="stat-lbl">Avg River Flow</div><div class="stat-val" id="s-avg">—<span class="stat-unit">m³/s</span></div></div>
+    <div class="stat" style="--c:var(--accent2)"><div class="stat-lbl">Dam Stations</div><div class="stat-val" id="s-dams">—</div></div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-hdr">
+      <span style="color:var(--accent);font-size:13px">◆</span>
+      <span class="insight-tag">AI OPERATIONAL INSIGHT</span>
+      <button class="btn btn-ghost" style="margin-left:auto;padding:3px 9px;font-size:8px" onclick="fetchInsight()">↺ REFRESH</button>
+    </div>
+    <div class="insight-body" id="insight-text">Click "Fetch Live Data" or "AI Insight" to generate an operational briefing for WMA2.</div>
+  </div>
+
+  <div class="controls fade-up">
+    <input class="search" id="search" placeholder="Search station or place…" oninput="render()"/>
+    <div class="filter-group">
+      <button class="btn btn-ghost active" data-f="all"      onclick="setFilter('all',this)">ALL<span class="cnt" id="fc-all">0</span></button>
+      <button class="btn btn-ghost"        data-f="rivers"   onclick="setFilter('rivers',this)">RIVERS<span class="cnt" id="fc-rivers">0</span></button>
+      <button class="btn btn-ghost"        data-f="dams"     onclick="setFilter('dams',this)">DAMS<span class="cnt" id="fc-dams">0</span></button>
+      <button class="btn btn-ghost"        data-f="spilling" onclick="setFilter('spilling',this)">SPILLING<span class="cnt" id="fc-spilling">0</span></button>
+      <button class="btn btn-ghost"        data-f="critical" onclick="setFilter('critical',this)">CRITICAL<span class="cnt" id="fc-critical">0</span></button>
+    </div>
+    <span class="res-count" id="res-count"></span>
+  </div>
+
+  <div id="data-out" class="fade-up">
+    <div class="tbl-wrap"><div class="empty">Loading demo data…</div></div>
+  </div>
+
+  <div style="margin-top:18px;color:var(--muted);font-size:9px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px">
+    <span>Source: <a href="https://www.dws.gov.za/Hydrology/Unverified/" target="_blank" style="color:var(--accent);text-decoration:none">DWS HS-Unaudited Data</a> · auto-refreshes every 30 min</span>
+    <span><a href="https://waterresearchobservatory.org" target="_blank" style="color:var(--accent);text-decoration:none">Water Research Observatory</a></span>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let stations=[], activeFilter='all', currentView='table', sortCol='flow', sortDir='desc';
+
+// WMA2 station prefix codes: X = Inkomati, W = Usuthu
+const WMA2_PREFIXES = /^[XW]/i;
+
+// ── STATUS ────────────────────────────────────────────────────────────────
+function classify(flow,isDam){
+  if(isDam){if(flow>110)return'critical';if(flow>95)return'high';if(flow>60)return'normal';return'low';}
+  if(flow>400)return'critical';if(flow>100)return'high';if(flow>20)return'normal';return'low';
+}
+const ST={
+  critical:{bg:'#ef4444',lbl:'CRITICAL'},
+  high:    {bg:'#f59e0b',lbl:'HIGH'},
+  normal:  {bg:'#00d4aa',lbl:'NORMAL'},
+  low:     {bg:'#3b82f6',lbl:'LOW'},
+};
+function badge(st){const s=ST[st];return`<span class="badge" style="background:${s.bg}1a;color:${s.bg};border:1px solid ${s.bg}44">${s.lbl}</span>`;}
+function bar(flow,isDam){
+  const max=isDam?130:600,pct=Math.min(flow/max*100,100).toFixed(1),c=ST[classify(flow,isDam)].bg;
+  return`<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${c};box-shadow:0 0 6px ${c}55"></div></div>`;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg,dur=3000){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';t.style.opacity='1';
+  clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.style.display='none',300);},dur);
+}
+
+// ── PARSE DWS HTML ────────────────────────────────────────────────────────
+function parseDWS(html){
+  const doc=new DOMParser().parseFromString(html,'text/html'),rows=[];
+  doc.querySelectorAll('table tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td');
+    if(tds.length<5) return;
+    const link=tds[0].querySelector('a');
+    if(!link) return;
+    const station=link.textContent.trim();
+    if(!WMA2_PREFIXES.test(station)) return;  // WMA2 only
+    const place   =tds[1]?.textContent.trim()||'';
+    const datetime=tds[2]?.textContent.trim()||'';
+    const stage   =parseFloat((tds[3]?.textContent||'').replace(',',''))||0;
+    const flow    =parseFloat((tds[4]?.textContent||'').replace(/,/g,''))||0;
+    const spill   =parseFloat((tds[5]?.textContent||'').replace(/,/g,''))||0;
+    const comment =tds[6]?.textContent.trim()||'';
+    const isDam   =/R\d/i.test(station);
+    rows.push({station,place,datetime,stage,flow,spill,comment,isDam});
+  });
+  return rows;
+}
+
+// ── FETCH LIVE ────────────────────────────────────────────────────────────
+async function fetchData(){
+  const btn=document.getElementById('fetch-btn'),icon=document.getElementById('fetch-icon');
+  btn.disabled=true; icon.className='spin';
+  toast('⟳ Fetching from DWS…',30000);
+  const URL='https://www.dws.gov.za/Hydrology/Unverified/';
+  const PROXIES=[
+    `https://api.allorigins.win/get?url=${encodeURIComponent(URL)}`,
+    `https://corsproxy.io/?${encodeURIComponent(URL)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(URL)}`,
+  ];
+  let html=null;
+  for(const p of PROXIES){
+    try{
+      const r=await fetch(p,{signal:AbortSignal.timeout(14000)});
+      if(!r.ok) continue;
+      const ct=r.headers.get('content-type')||'';
+      if(ct.includes('json')){const j=await r.json();if(j?.contents?.length>500){html=j.contents;break;}}
+      else{const t=await r.text();if(t?.length>500){html=t;break;}}
+    }catch(e){console.warn('proxy fail',p,e);}
+  }
+  btn.disabled=false; icon.className='';
+  if(!html||html.length<500){
+    toast('⚠ Could not reach DWS — showing demo data',5000);
+    loadDemo(); return;
+  }
+  const parsed=parseDWS(html);
+  if(parsed.length<2){
+    // DWS likely returned WMA4 default — note this to user but keep demo
+    toast('⚠ DWS returned default WMA4 data (JS limitation) — showing WMA2 demo data',6000);
+    loadDemo(); return;
+  }
+  stations=parsed;
+  document.getElementById('last-updated').textContent=
+    'Live · '+new Date().toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'short'});
+  toast(`✓ Loaded ${stations.length} WMA2 stations`,3000);
+  updateAll();
+}
+
+// ── DEMO DATA — WMA2 Inkomati-Usuthu ─────────────────────────────────────
+// Station codes: X = Inkomati catchment, W = Usuthu/Pongola
+function loadDemo(){
+  stations=[
+    // ── Crocodile River system ──
+    {station:'X1H001',place:'Crocodile at Komatipoort',         datetime:'2026-05-03 06:00',stage:1.204,flow:87.40, spill:0,    comment:'',                isDam:false},
+    {station:'X1H003',place:'Crocodile at Malelane',            datetime:'2026-05-03 06:00',stage:0.984,flow:54.20, spill:0,    comment:'',                isDam:false},
+    {station:'X1H019',place:'Crocodile at Riverside',           datetime:'2026-05-03 06:00',stage:0.724,flow:28.60, spill:0,    comment:'',                isDam:false},
+    {station:'X1H020',place:'Crocodile at Tenbosch',            datetime:'2026-05-03 06:00',stage:0.842,flow:34.20, spill:0,    comment:'',                isDam:false},
+    {station:'X1H021',place:'Crocodile at Tonga',               datetime:'2026-05-03 06:00',stage:0.631,flow:19.80, spill:0,    comment:'',                isDam:false},
+    {station:'X1H022',place:'Crocodile at Hectorspruit',        datetime:'2026-05-03 06:00',stage:0.512,flow:12.40, spill:0,    comment:'',                isDam:false},
+    {station:'X1R001',place:'Crocodile at Kwena Dam',           datetime:'2026-05-03 06:00',stage:19.43,flow:88.30, spill:0,    comment:'',                isDam:true},
+    {station:'X1R002',place:'Crocodile at Nooitgedacht Dam',    datetime:'2026-05-03 06:00',stage:14.82,flow:71.40, spill:0,    comment:'',                isDam:true},
+    // ── Elands River ──
+    {station:'X2H005',place:'Elands at Rhenosterkop',           datetime:'2026-05-03 06:00',stage:0.302,flow:4.60,  spill:0,    comment:'',                isDam:false},
+    {station:'X2H008',place:'Elands at Tonteldoos',             datetime:'2026-05-03 06:00',stage:0.418,flow:7.20,  spill:0,    comment:'',                isDam:false},
+    // ── Kaap River ──
+    {station:'X2H013',place:'Kaap at Kaapmuiden',               datetime:'2026-05-03 06:00',stage:0.624,flow:16.80, spill:0,    comment:'',                isDam:false},
+    // ── Sabie River system ──
+    {station:'X3H001',place:'Sabie at Sabie',                   datetime:'2026-05-03 06:00',stage:0.621,flow:12.40, spill:0,    comment:'',                isDam:false},
+    {station:'X3H006',place:'Sabie at Skukuza',                 datetime:'2026-05-03 06:00',stage:0.814,flow:28.70, spill:0,    comment:'',                isDam:false},
+    {station:'X3H015',place:'Sabie at Bushbuckridge',           datetime:'2026-05-03 06:00',stage:0.534,flow:9.40,  spill:0,    comment:'',                isDam:false},
+    {station:'X3R001',place:'Sabie at Injaka Dam',              datetime:'2026-05-03 06:00',stage:16.82,flow:74.10, spill:0,    comment:'',                isDam:true},
+    {station:'X3R002',place:'Sabie at Mac-Mac Dam',             datetime:'2026-05-03 06:00',stage:8.24, flow:58.30, spill:0,    comment:'',                isDam:true},
+    // ── Sand River ──
+    {station:'X3H002',place:'Sand at Sand River Dam outflow',   datetime:'2026-05-03 06:00',stage:0.314,flow:3.80,  spill:0,    comment:'',                isDam:false},
+    {station:'X3R003',place:'Sand at Sand River Dam',           datetime:'2026-05-03 06:00',stage:11.40,flow:62.80, spill:0,    comment:'',                isDam:true},
+    // ── Olifants (lower, Inkomati tributary) ──
+    {station:'X3H008',place:'Olifants at Mamba',                datetime:'2026-05-03 06:00',stage:1.102,flow:66.20, spill:0,    comment:'',                isDam:false},
+    // ── Inkomati mainstem ──
+    {station:'X2H010',place:'Inkomati at Komatipoort',          datetime:'2026-05-03 06:00',stage:1.824,flow:214.60,spill:0,    comment:'',                isDam:false},
+    {station:'X2H016',place:'Komati at Komatipoort (border)',   datetime:'2026-05-03 06:00',stage:1.602,flow:168.40,spill:0,    comment:'',                isDam:false},
+    // ── Komati / Lomati system ──
+    {station:'X2H001',place:'Komati at Balmoral',               datetime:'2026-05-03 06:00',stage:0.843,flow:34.60, spill:0,    comment:'',                isDam:false},
+    {station:'X2H011',place:'Lomati at Lomati River',           datetime:'2026-05-03 06:00',stage:0.512,flow:8.20,  spill:0,    comment:'',                isDam:false},
+    {station:'X2R001',place:'Komati at Driekoppies Dam',        datetime:'2026-05-03 06:00',stage:24.18,flow:96.40, spill:4.20, comment:'',                isDam:true},
+    {station:'X2R002',place:'Komati at Maguga Dam (Eswatini)',  datetime:'2026-05-03 06:00',stage:60.42,flow:104.80,spill:22.10,comment:'',                isDam:true},
+    // ── Usuthu / Pongola system ──
+    {station:'W1H003',place:'Usuthu at Lomahasha',              datetime:'2026-05-03 07:00',stage:0.984,flow:44.70, spill:0,    comment:'',                isDam:false},
+    {station:'W1H006',place:'Usuthu at Mhlumeni',               datetime:'2026-05-03 07:00',stage:0.762,flow:28.30, spill:0,    comment:'',                isDam:false},
+    {station:'W1H012',place:'Usuthu at Goba border',            datetime:'2026-05-03 07:00',stage:1.102,flow:66.80, spill:0,    comment:'',                isDam:false},
+    {station:'W1R001',place:'Usuthu at Pongolapoort Dam',       datetime:'2026-05-03 07:00',stage:42.18,flow:96.40, spill:0,    comment:'',                isDam:true},
+    {station:'W3H001',place:'Pongola at Mkuze',                 datetime:'2026-05-03 07:00',stage:0.631,flow:14.20, spill:0,    comment:'',                isDam:false},
+    {station:'W3R001',place:'Pongola at Jozini Dam',            datetime:'2026-05-03 07:00',stage:38.64,flow:101.20,spill:8.40, comment:'',                isDam:true},
+  ];
+  document.getElementById('last-updated').textContent=
+    'Demo data · '+new Date().toLocaleString('en-ZA',{dateStyle:'medium',timeStyle:'short'});
+  updateAll();
+}
+
+// ── UPDATE ────────────────────────────────────────────────────────────────
+function updateAll(){updateStats();updateFilterCounts();render();}
+
+function updateStats(){
+  const rivers=stations.filter(x=>!x.isDam);
+  const crit  =stations.filter(x=>classify(x.flow,x.isDam)==='critical');
+  const spill =stations.filter(x=>x.spill>0);
+  const avg   =rivers.length?rivers.reduce((a,x)=>a+x.flow,0)/rivers.length:0;
+  document.getElementById('s-total').textContent=stations.length;
+  document.getElementById('s-crit').textContent =crit.length;
+  document.getElementById('s-spill').textContent=spill.length;
+  document.getElementById('s-avg').innerHTML    =avg.toFixed(1)+'<span class="stat-unit">m³/s</span>';
+  document.getElementById('s-dams').textContent =stations.filter(x=>x.isDam).length;
+}
+
+function updateFilterCounts(){
+  document.getElementById('fc-all').textContent     =stations.length;
+  document.getElementById('fc-rivers').textContent  =stations.filter(x=>!x.isDam).length;
+  document.getElementById('fc-dams').textContent    =stations.filter(x=>x.isDam).length;
+  document.getElementById('fc-spilling').textContent=stations.filter(x=>x.spill>0).length;
+  document.getElementById('fc-critical').textContent=stations.filter(x=>classify(x.flow,x.isDam)==='critical').length;
+}
+
+// ── FILTER / SORT ─────────────────────────────────────────────────────────
+function setFilter(f,el){
+  activeFilter=f;
+  document.querySelectorAll('[data-f]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function toggleView(){
+  currentView=currentView==='table'?'cards':'table';
+  document.getElementById('view-btn').textContent=currentView==='table'?'⊞ Cards':'≡ Table';
+  render();
+}
+function sortBy(col){
+  if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';
+  else{sortCol=col;sortDir='desc';}
+  render();
+}
+function getFiltered(){
+  const q=document.getElementById('search').value.toLowerCase();
+  return stations
+    .filter(s=>{
+      if(activeFilter==='rivers')   return !s.isDam;
+      if(activeFilter==='dams')     return s.isDam;
+      if(activeFilter==='spilling') return s.spill>0;
+      if(activeFilter==='critical') return classify(s.flow,s.isDam)==='critical';
+      return true;
+    })
+    .filter(s=>!q||s.station.toLowerCase().includes(q)||s.place.toLowerCase().includes(q))
+    .sort((a,b)=>{
+      const va=sortCol==='flow'?a.flow:sortCol==='stage'?a.stage:a.station;
+      const vb=sortCol==='flow'?b.flow:sortCol==='stage'?b.stage:b.station;
+      if(typeof va==='string')return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+      return sortDir==='asc'?va-vb:vb-va;
+    });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render(){
+  const filtered=getFiltered();
+  document.getElementById('res-count').textContent=`${filtered.length} of ${stations.length} stations`;
+  const out=document.getElementById('data-out');
+  if(!filtered.length){out.innerHTML='<div class="tbl-wrap"><div class="empty">No stations match your filters.</div></div>';return;}
+  currentView==='cards'?renderCards(filtered,out):renderTable(filtered,out);
+}
+
+function arrow(col){
+  if(sortCol!==col)return'<span style="color:#2a2a4a">⇅</span>';
+  return`<span style="color:var(--accent)">${sortDir==='asc'?'▲':'▼'}</span>`;
+}
+
+function renderTable(data,out){
+  const rows=data.map(s=>{
+    const st=classify(s.flow,s.isDam),color=ST[st].bg;
+    const fv=s.isDam
+      ?`<span class="flow-val" style="color:${color}">${s.flow.toFixed(1)}%</span>`
+      :`<span class="flow-val" style="color:${color}">${s.flow.toFixed(2)}</span><span style="color:var(--muted);font-size:9px">m³/s</span>`;
+    return`<tr>
+      <td><a class="sc" href="https://www.dws.gov.za/Hydrology/Unverified/" target="_blank" onclick="event.stopPropagation()">${s.station}</a>${s.isDam?'<span class="dam-lbl">DAM</span>':''}</td>
+      <td class="place-cell">${s.place}</td>
+      <td class="dt-cell">${s.datetime||'—'}</td>
+      <td style="font-weight:700">${s.stage.toFixed(3)}</td>
+      <td class="flow-cell">${fv}<div style="margin-top:3px">${bar(s.flow,s.isDam)}</div></td>
+      <td>${s.spill>0?`<span class="spill-val">${s.spill.toFixed(2)}</span>`:'<span class="no-spill">—</span>'}</td>
+      <td>${badge(st)}</td>
+      <td class="cmt-cell">${s.comment||'—'}</td>
+    </tr>`;
+  }).join('');
+  out.innerHTML=`<div class="tbl-wrap"><table>
+    <thead><tr>
+      <th class="sort" onclick="sortBy('station')">STATION ${arrow('station')}</th>
+      <th>LOCATION</th>
+      <th>DATE/TIME</th>
+      <th class="sort" onclick="sortBy('stage')">STAGE (m) ${arrow('stage')}</th>
+      <th class="sort" onclick="sortBy('flow')">FLOW / CAP ${arrow('flow')}</th>
+      <th>SPILL</th>
+      <th>STATUS</th>
+      <th>COMMENT</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderCards(data,out){
+  const cards=data.map(s=>{
+    const st=classify(s.flow,s.isDam),color=ST[st].bg;
+    const fl=s.isDam?`${s.flow.toFixed(1)}%`:`${s.flow.toFixed(2)} m³/s`;
+    return`<div class="card">
+      <div class="card-hd">
+        <div><div class="card-sc">${s.station}</div><div class="card-type">${s.isDam?'🏗 Dam':'🌊 River station'}</div></div>
+        ${badge(st)}
+      </div>
+      <div class="card-place">${s.place}</div>
+      <div style="margin-bottom:8px">${bar(s.flow,s.isDam)}</div>
+      <div class="card-metrics">
+        <div><span class="card-ml">Flow/Cap: </span><span class="card-mv" style="color:${color}">${fl}</span></div>
+        <div><span class="card-ml">Stage: </span><span class="card-mv">${s.stage.toFixed(3)} m</span></div>
+      </div>
+      ${s.spill>0?`<div class="card-spill">⚠ SPILLING: ${s.spill.toFixed(2)} m³/s</div>`:''}
+      <div class="card-dt">${s.datetime||''} ${s.comment?'· '+s.comment:''}</div>
+    </div>`;
+  }).join('');
+  out.innerHTML=`<div class="cards-grid">${cards}</div>`;
+}
+
+// ── AI INSIGHT ────────────────────────────────────────────────────────────
+async function fetchInsight(){
+  if(!stations.length){toast('Load data first',3000);return;}
+  const txt=document.getElementById('insight-text');
+  txt.textContent='Analysing WMA2 Inkomati-Usuthu conditions…';
+  const rivers=stations.filter(x=>!x.isDam);
+  const crit  =stations.filter(x=>classify(x.flow,x.isDam)==='critical');
+  const spill =stations.filter(x=>x.spill>0);
+  const avg   =rivers.length?rivers.reduce((a,x)=>a+x.flow,0)/rivers.length:0;
+  const top5  =[...stations].sort((a,b)=>b.flow-a.flow).slice(0,5).map(x=>`${x.station}: ${x.flow.toFixed(1)}`).join(', ');
+  const prompt=`You are a senior hydrologist at South Africa's DWS. Write a concise 2–3 sentence operational briefing for WMA2 (Inkomati-Usuthu catchment: Crocodile, Sabie, Komati, Usuthu rivers). Highlight risk level, critical/spilling infrastructure, and notable flow conditions. Be direct and technical. No bullet points.
+
+Snapshot:
+- Total stations: ${stations.length}
+- Critical: ${crit.length} (${crit.slice(0,5).map(x=>x.station).join(', ')||'none'})
+- Spilling dams: ${spill.map(x=>`${x.station} ${x.spill.toFixed(1)}m³/s`).join(', ')||'none'}
+- Avg river flow: ${avg.toFixed(1)} m³/s
+- Top flows: ${top5}`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]}),
+    });
+    const json=await res.json();
+    txt.textContent=json.content?.find(b=>b.type==='text')?.text||'Unable to generate insight.';
+  }catch{txt.textContent='AI insight unavailable.';}
+}
+
+// ── AUTO-REFRESH ──────────────────────────────────────────────────────────
+setInterval(()=>{if(stations.length>0)fetchData();},30*60*1000);
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+loadDemo();
+</script>
+</body>
+</html>
