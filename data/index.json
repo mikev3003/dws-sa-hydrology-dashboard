@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-05-15T09:26:59.259246+00:00",
+  "fetched_at": "2026-05-15T19:53:29.219572+00:00",
   "schedule": "Twice daily \u2014 06:15 and 18:15 UTC",
   "source": "https://www.dws.gov.za/Hydrology/Unverified/",
   "method": "Playwright headless Chromium",
@@ -7,7 +7,7 @@
     "WMA1": 0,
     "WMA2": 0,
     "WMA3": 0,
-    "WMA4": 105,
+    "WMA4": 106,
     "WMA5": 0,
     "WMA6": 0
   }
